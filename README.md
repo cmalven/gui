@@ -139,6 +139,6 @@ Toggles the visibility of the GUI. E.g. if it is hidden it will become visible a
 # Run tests once
 npm test
 
-# Run tests whenever files change
-npm run test:watch
+# Build and run tests whenever files change
+npm run dev
 ```
