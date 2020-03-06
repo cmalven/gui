@@ -1,7 +1,7 @@
 {
   "name": "@malven/gui",
   "version": "1.0.1",
-  "description": "Tools for finding the relationship of an element to a scrollable viewport.",
+  "description": "An abstraction layer over dat.gui that simplifies use and adds automatic support through MIDI devices.",
   "main": "dist/gui.umd.js",
   "module": "dist/gui.es.js",
   "scripts": {
