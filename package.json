@@ -1,6 +1,6 @@
 {
   "name": "@malven/gui",
-  "version": "1.0.2",
+  "version": "1.0.5",
   "description": "An abstraction layer over dat.gui that simplifies use and adds automatic support through MIDI devices.",
   "main": "dist/gui.umd.js",
   "scripts": {
