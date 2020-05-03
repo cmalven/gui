@@ -1,5 +1,4 @@
 import dat from 'dat.gui';
-import gsap from 'gsap';
 import WebMidi from 'webmidi';
 
 /**
@@ -139,8 +138,8 @@ const Gui = function(options) {
     const adjustedStep = step
       ? step
       : (max - min) / 127;
-    const scaledValue = gsap.utils.mapRange(0, 127, min, max, velocity);
-    const snappedValue = gsap.utils.snap(adjustedStep.toFixed(5), scaledValue);
+    const scaledValue = self.mapRange(0, 127, min, max, velocity);
+    const snappedValue = self.snap(adjustedStep.toFixed(5), scaledValue);
     controller.setValue(snappedValue);
   };
 
@@ -149,6 +148,7 @@ const Gui = function(options) {
       customControls[note].call(self, velocity);
     }
   };
+
 
 
   //
@@ -243,6 +243,14 @@ const Gui = function(options) {
     self.getControllers().forEach(controller => {
       controller.updateDisplay();
     });
+  };
+
+  self.mapRange = function(inMin, inMax, outMin, outMax, value) {
+    return (value - inMin) * (outMax - outMin) / (inMax - inMin) + outMin;
+  };
+
+  self.snap = function(snapIncrement, value) {
+    return Math.round(value / snapIncrement) * snapIncrement;
   };
 
 

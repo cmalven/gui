@@ -1,9 +1,8 @@
 {
   "name": "@malven/gui",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "An abstraction layer over dat.gui that simplifies use and adds automatic support through MIDI devices.",
   "main": "dist/gui.umd.js",
-  "module": "dist/gui.es.js",
   "scripts": {
     "build": "rollup --config",
     "test": "jest",
@@ -20,26 +19,25 @@
   },
   "homepage": "https://github.com/cmalven/gui#readme",
   "devDependencies": {
-    "@babel/preset-env": "^7.8.7",
-    "@malven/eslint-config": "0.0.2",
+    "@babel/preset-env": "^7.9.6",
+    "@malven/eslint-config": "^1.0.0",
     "babel-eslint": "^10.1.0",
-    "core-js": "^3.6.4",
-    "eslint-plugin-react": "^7.18.3",
-    "jest": "^25.1.0",
-    "rollup": "^2.0.0",
-    "rollup-plugin-babel": "^4.3.3",
+    "core-js": "^3.6.5",
+    "eslint-plugin-react": "^7.19.0",
+    "jest": "^25.5.4",
+    "rollup": "^2.7.6",
+    "rollup-plugin-babel": "^4.4.0",
     "rollup-plugin-commonjs": "^10.1.0",
     "rollup-plugin-node-resolve": "^5.2.0",
-    "rollup-plugin-terser": "^5.2.0",
+    "rollup-plugin-terser": "^5.3.0",
     "rollup-watch": "^4.3.1"
   },
   "eslintConfig": {
     "extends": "@malven"
   },
   "dependencies": {
-    "dat.gui": "^0.7.6",
+    "dat.gui": "^0.7.7",
     "eslint": "^6.8.0",
-    "gsap": "^3.2.4",
     "webmidi": "^2.5.1"
   }
 }

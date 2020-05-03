@@ -76,4 +76,11 @@ describe('Gui', () => {
     gui.toggle();
     expect(gui.gui.domElement.style.display).toBe('none');
   });
+
+  test('Snaps to nearest increment of value', () => {
+    expect(gui.snap(0.5, 0.2)).toBe(0);
+    expect(gui.snap(0.5, 0.4)).toBe(0.5);
+    expect(gui.snap(5, 2)).toBe(0);
+    expect(gui.snap(5, 3)).toBe(5);
+  });
 });
