@@ -11,19 +11,19 @@ export default [
       resolve(),
       commonjs(),
       babel({ exclude: 'node_modules/**' }),
-      terser()
+      terser(),
     ],
     output: {
       file: pkg.main,
       name: 'gui',
-      format: 'umd'
-    }
+      format: 'umd',
+    },
   },
   {
     input: 'src/gui.js',
     output: {
       file: pkg.module,
-      format: 'es'
-    }
-  }
+      format: 'es',
+    },
+  },
 ];
