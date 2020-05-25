@@ -124,11 +124,8 @@ const Gui = function(options) {
     // If this note isn't registered, do nothing
     if (controlIdx < 0) return;
 
-    // Get all number controllers and attempt to find the one matching the index of this control
-    const allControllers = self.getControllers().filter(controller => {
-      return typeof controller.min !== undefined && typeof controller.max !== undefined;
-    });
-    const controller = allControllers[controlIdx];
+    // Find the matching controller
+    const controller = self._getNumericControllerAtIndex(controlIdx);
 
     // If no matching controller, we're done
     if (!controller) return;
@@ -138,8 +135,8 @@ const Gui = function(options) {
     const adjustedStep = step
       ? step
       : (max - min) / 127;
-    const scaledValue = self.mapRange(0, 127, min, max, velocity);
-    const snappedValue = self.snap(adjustedStep.toFixed(5), scaledValue);
+    const scaledValue = self._mapRange(0, 127, min, max, velocity);
+    const snappedValue = self._snap(adjustedStep.toFixed(5), scaledValue);
     controller.setValue(snappedValue);
   };
 
@@ -149,6 +146,22 @@ const Gui = function(options) {
     }
   };
 
+  self._mapRange = function(inMin, inMax, outMin, outMax, value) {
+    return (value - inMin) * (outMax - outMin) / (inMax - inMin) + outMin;
+  };
+
+  self._snap = function(snapIncrement, value) {
+    return Math.round(value / snapIncrement) * snapIncrement;
+  };
+
+  self._getNumericControllerAtIndex = function(idx) {
+    // Get all number controllers and attempt to find the one matching the index of this control
+    const allControllers = self.getControllers().filter(controller => {
+      return typeof controller.min !== undefined && typeof controller.max !== undefined;
+    });
+    const controller = allControllers[idx];
+    return controller;
+  };
 
 
   //
@@ -181,9 +194,14 @@ const Gui = function(options) {
   };
 
   self.getControllers = function() {
-    return folders.reduce((acc, gui) => {
-      return acc.concat(self.gui.__controllers);
-    }, self.gui.__controllers);
+    const allFolders = folders.length ? folders : [self.gui];
+    const openFolders = allFolders.filter(folder => !folder.closed);
+
+    const allControllers = openFolders.reduce((acc, gui) => {
+      return acc.concat(gui.__controllers);
+    }, []);
+
+    return allControllers;
   };
 
   self.removeFolder = function(folder) {
@@ -243,14 +261,6 @@ const Gui = function(options) {
     self.getControllers().forEach(controller => {
       controller.updateDisplay();
     });
-  };
-
-  self.mapRange = function(inMin, inMax, outMin, outMax, value) {
-    return (value - inMin) * (outMax - outMin) / (inMax - inMin) + outMin;
-  };
-
-  self.snap = function(snapIncrement, value) {
-    return Math.round(value / snapIncrement) * snapIncrement;
   };
 
 

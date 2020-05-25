@@ -6,9 +6,11 @@ describe('Gui', () => {
 
   beforeEach(() => {
     settings = {
-      foo: 1,
-      bar: 1,
-      color: '#ff0000'
+      alpha: 1,
+      beta: 1,
+      gamma: 1,
+      delta: 1,
+      color: '#ff0000',
     };
     gui = new Gui();
   });
@@ -19,10 +21,10 @@ describe('Gui', () => {
   });
 
   test('Basic adding', () => {
-    const control = gui.add(settings, 'foo', 0, 200);
+    const control = gui.add(settings, 'alpha', 0, 200);
     expect(control).toMatchObject({
       initialValue: 1,
-      property: 'foo'
+      property: 'alpha',
     });
   });
 
@@ -30,16 +32,16 @@ describe('Gui', () => {
     const control = gui.addColor(settings, 'color');
     expect(control).toMatchObject({
       initialValue: '#ff0000',
-      property: 'color'
+      property: 'color',
     });
   });
 
   test('Adding and removing a folder', () => {
     // Add
     const folder = gui.setFolder('other');
-    gui.add(settings, 'bar', 0, 200);
+    gui.add(settings, 'beta', 0, 200);
     expect(gui.gui.__folders).toMatchObject({
-      other: expect.anything()
+      other: expect.anything(),
     });
 
     // Remove
@@ -48,16 +50,35 @@ describe('Gui', () => {
   });
 
   test('Get all controllers', () => {
-    gui.add(settings, 'foo', 0, 200);
-    gui.add(settings, 'bar', 0, 200);
+    gui.add(settings, 'alpha', 0, 200);
+    gui.add(settings, 'beta', 0, 200);
     const controllers = gui.getControllers();
     expect(controllers).toHaveLength(2);
   });
 
+  test('Get numeric controller at index', () => {
+    const folder1 = gui.setFolder('one');
+    gui.add(settings, 'alpha', 0, 200);
+    gui.add(settings, 'beta', 0, 200);
+
+    const folder2 = gui.setFolder('two');
+    gui.add(settings, 'gamma', 0, 200);
+    gui.add(settings, 'delta', 0, 200);
+
+    folder2.open();
+    expect(gui._getNumericControllerAtIndex(0).property).toBe('gamma');
+    expect(gui._getNumericControllerAtIndex(1).property).toBe('delta');
+    folder1.open();
+    expect(gui._getNumericControllerAtIndex(0).property).toBe('alpha');
+    expect(gui._getNumericControllerAtIndex(1).property).toBe('beta');
+    expect(gui._getNumericControllerAtIndex(2).property).toBe('gamma');
+    expect(gui._getNumericControllerAtIndex(3).property).toBe('delta');
+  });
+
   test('Clear everything', () => {
-    gui.add(settings, 'foo', 0, 200);
+    gui.add(settings, 'alpha', 0, 200);
     gui.setFolder('other');
-    gui.add(settings, 'bar', 0, 200);
+    gui.add(settings, 'beta', 0, 200);
     gui.clear();
 
     // Controllers are gone
@@ -78,9 +99,9 @@ describe('Gui', () => {
   });
 
   test('Snaps to nearest increment of value', () => {
-    expect(gui.snap(0.5, 0.2)).toBe(0);
-    expect(gui.snap(0.5, 0.4)).toBe(0.5);
-    expect(gui.snap(5, 2)).toBe(0);
-    expect(gui.snap(5, 3)).toBe(5);
+    expect(gui._snap(0.5, 0.2)).toBe(0);
+    expect(gui._snap(0.5, 0.4)).toBe(0.5);
+    expect(gui._snap(5, 2)).toBe(0);
+    expect(gui._snap(5, 3)).toBe(5);
   });
 });
