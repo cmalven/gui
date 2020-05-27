@@ -62,6 +62,10 @@ const createGui = () => {
 });
 ```
 
+### Viewing values and copying to clipboard
+
+The keyboard shorcut `Option-S` (`Alt-S` on Windows) will display all aggregated values and copy them to your clipboard.
+
 ### Dynamic Loading using Webpack
 
 GUI isn't always wanted in production. Below is a nice approach to reducing filesize and eliminating unused functionality by loading GUI dynamically, and only when desired. Requires the use of [webpack](https://webpack.js.org) with the appropriate setup.

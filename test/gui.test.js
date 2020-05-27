@@ -75,6 +75,28 @@ describe('Gui', () => {
     expect(gui._getNumericControllerAtIndex(3).property).toBe('delta');
   });
 
+  test('Get aggregated settings', () => {
+    gui.setFolder('one');
+    gui.add(settings, 'alpha', 0, 200);
+    gui.add(settings, 'beta', 0, 200);
+
+    gui.setFolder('two');
+    gui.add(settings, 'gamma', 0, 200);
+    gui.add(settings, 'delta', 0, 200);
+
+    const allSettings = gui._getAggregatedSettings();
+    expect(allSettings).toEqual({
+      one: {
+        alpha: 1,
+        beta: 1,
+      },
+      two: {
+        gamma: 1,
+        delta: 1,
+      },
+    });
+  });
+
   test('Clear everything', () => {
     gui.add(settings, 'alpha', 0, 200);
     gui.setFolder('other');

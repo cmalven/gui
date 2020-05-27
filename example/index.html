@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang=en>
+<head>
+<meta charset=utf-8>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GUI Example</title>
+
+</head>
+<body>
+
+
+<script src="../dist/gui.umd.js"></script>
+
+<script>
+  settings = {
+    alpha: 1,
+    beta: 1,
+    gamma: 1,
+    delta: 1,
+    color: '#ff0000',
+  };
+  const gui = new window.Gui();
+
+  const folder1 = gui.setFolder('one');
+  gui.add(settings, 'alpha', 0, 200);
+  gui.add(settings, 'beta', 0, 200);
+
+  const folder2 = gui.setFolder('two');
+  gui.add(settings, 'gamma', 0, 200);
+  gui.add(settings, 'delta', 0, 200);
+  gui.addColor(settings, 'color');
+</script>
+</body>
+</html>

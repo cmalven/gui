@@ -1,6 +1,6 @@
 {
   "name": "@malven/gui",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "An abstraction layer over dat.gui that simplifies use and adds automatic support through MIDI devices.",
   "main": "dist/gui.umd.js",
   "scripts": {
@@ -36,8 +36,10 @@
     "extends": "@malven"
   },
   "dependencies": {
+    "copy-to-clipboard": "^3.3.1",
     "dat.gui": "^0.7.7",
     "eslint": "^6.8.0",
+    "mousetrap": "^1.6.5",
     "webmidi": "^2.5.1"
   }
 }

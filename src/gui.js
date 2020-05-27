@@ -1,5 +1,7 @@
 import dat from 'dat.gui';
 import WebMidi from 'webmidi';
+import Mousetrap from 'mousetrap';
+import copy from 'copy-to-clipboard';
 
 /**
  * Assists in controlling properties
@@ -22,8 +24,8 @@ const Gui = function(options) {
       '#ee907b',
       '#2ed9c3',
       '#5887da',
-      '#b4b3df'
-    ]
+      '#b4b3df',
+    ],
   }, options);
 
 
@@ -49,6 +51,8 @@ const Gui = function(options) {
   const _init = function() {
     _addMidi();
     _addEventListeners();
+    _addSaveMarkup();
+    _addSaveEventListeners();
     _addStyles();
   };
 
@@ -83,9 +87,78 @@ const Gui = function(options) {
     });
   };
 
+  const _addSaveMarkup = () => {
+    // Add the markup
+    const markup = `
+      <div class="gui-save__inner">
+        <span class="gui-save__close">&times;</span>
+        <p class="gui-save__clipboard-notification">This code has been saved to your clipboard.</p>
+        <textarea
+          class="gui-save__textarea"
+          name="gui-save-text"
+          id="gui-save-text"
+          autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+        ></textarea>
+      </div>
+    `;
+
+    const container = document.querySelector('body');
+    const newEl = document.createElement('div');
+    newEl.classList.add('gui-save');
+    newEl.innerHTML = markup;
+    container.appendChild(newEl);
+    container.insertBefore(newEl, null);
+    container.insertBefore(newEl, container.childNodes[0] || null);
+  };
+
+  const _addSaveEventListeners = () => {
+    Mousetrap.bind('alt+s', _saveMarkup);
+    Mousetrap.bind('esc', _closeSave);
+    document.querySelector('.gui-save__close').addEventListener('click', _closeSave);
+  };
+
+  const _saveMarkup = () => {
+    let allSettings = self._getAggregatedSettings();
+    allSettings = JSON.stringify(allSettings, null, 1);
+
+    // Turn into a normal javascript object
+    allSettings.replace(/\\"/g, '\uFFFF');
+    allSettings = allSettings.replace(/"([^"]+)":/g, '$1:').replace(/\uFFFF/g, '\\\"');
+
+    // Replace double quotes with single
+    allSettings.replace(/"/g, "'");
+
+    // Add to textarea and open
+    document.querySelector('.gui-save__textarea').value = allSettings;
+    _openSave();
+    _copySaveToClipboard();
+  };
+
+  const _openSave = () => {
+    document.querySelector('.gui-save').classList.add('is-visible');
+  };
+
+  const _copySaveToClipboard = () => {
+    // Copy to clipboard
+    copy(document.querySelector('.gui-save__textarea').value);
+
+    // Show notification message
+    const clipboardNotificationEl = document.querySelector('.gui-save__clipboard-notification');
+    clipboardNotificationEl.classList.add('is-visible');
+    window.setTimeout(() => {
+      clipboardNotificationEl.classList.remove('is-visible');
+    }, 2000);
+  };
+
+  const _closeSave = () => {
+    document.querySelector('.gui-save').classList.remove('is-visible');
+  };
+
   const _addStyles = function() {
     let css = document.createElement('style');
     css.type = 'text/css';
+
+    // Add colors
     let count = 1;
     self.colors.forEach((color, idx) => {
       for (var i = 0, length = self.midiPerColor; i < length; i++) {
@@ -97,6 +170,102 @@ const Gui = function(options) {
         count++;
       }
     });
+
+    // Add save styles
+    css.appendChild(document.createTextNode(`
+      .dg.ac {
+        z-index: 9999;
+      }
+
+      .gui-save {
+        display: none;
+        position: fixed;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        justify-content: center;
+        align-items: center;
+        box-sizing: border-box;
+        background-color: rgba(255, 255, 255, 0.1);
+        z-index: 999;
+      }
+
+      .gui-save *, .gui-save *:before, .gui-save *:after {
+        box-sizing: inherit;
+      }
+
+      .gui-save.is-visible {
+        display: flex;
+      }
+
+      .gui-save__inner {
+        position: relative;
+        width: 100%;
+        max-width: 400px;
+        margin: 20px;
+      }
+
+      .gui-save__textarea {
+        appearance: none;
+        border-radius: 5px;
+        border: none;
+        background-color: #1f1f1f;
+        width: 100%;
+        height: 300px;
+        padding: 25px 23px;
+        border-left: 4px solid #5887da;
+        font-family: 'Courier New', Courier, 'Lucida Sans Typewriter', 'Lucida Typewriter', monospace;
+        font-size: 14px;
+        line-height: 1.5;
+        font-weight: normal;
+        color: white;
+        transition: border-color 0.2s;
+      }
+
+      .gui-save__textarea:focus {
+        outline: none;
+        border-color: #ee907b;
+      }
+
+      .gui-save__clipboard-notification {
+        font-family: 'Courier New', Courier, 'Lucida Sans Typewriter', 'Lucida Typewriter', monospace;
+        font-size: 13px;
+        pointer-events: none;
+        position: absolute;
+        bottom: -45px;
+        left: 0;
+        right: 0;
+        opacity: 0;
+        color: #5887da;
+        transition: opacity 0.4s;
+      }
+
+      .gui-save__clipboard-notification.is-visible {
+        opacity: 1;
+      }
+
+      .gui-save__close {
+        position: absolute;
+        width: 35px;
+        height: 35px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        top: 0;
+        right: 0;
+        z-index: 1;
+        font-size: 18px;
+        cursor: pointer;
+        color: #fff;
+      }
+
+      .gui-save__close:active {
+        opacity: 0.7;
+      }
+    `));
+
+    // Add to head
     document.querySelector('head').appendChild(css);
   };
 
@@ -146,6 +315,10 @@ const Gui = function(options) {
     }
   };
 
+  const _getAllFolders = () => {
+    return folders.length ? folders : [self.gui];
+  };
+
   self._mapRange = function(inMin, inMax, outMin, outMax, value) {
     return (value - inMin) * (outMax - outMin) / (inMax - inMin) + outMin;
   };
@@ -161,6 +334,19 @@ const Gui = function(options) {
     });
     const controller = allControllers[idx];
     return controller;
+  };
+
+  self._getAggregatedSettings = function() {
+    const allFolders = _getAllFolders();
+    return allFolders.reduce((acc, folder) => {
+      let folderValues = folder.__controllers.reduce((controllerAcc, controller) => {
+        controllerAcc[controller.property] = controller.getValue();
+        return controllerAcc;
+      }, {});
+
+      acc[folder.name] = folderValues;
+      return acc;
+    }, {});
   };
 
 
@@ -194,7 +380,7 @@ const Gui = function(options) {
   };
 
   self.getControllers = function() {
-    const allFolders = folders.length ? folders : [self.gui];
+    const allFolders = _getAllFolders();
     const openFolders = allFolders.filter(folder => !folder.closed);
 
     const allControllers = openFolders.reduce((acc, gui) => {

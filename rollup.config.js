@@ -15,7 +15,7 @@ export default [
     ],
     output: {
       file: pkg.main,
-      name: 'gui',
+      name: 'Gui',
       format: 'umd',
     },
   },
