@@ -23,8 +23,8 @@ const Gui = function(options) {
     colors: [
       '#ee907b',
       '#2ed9c3',
-      '#5887da',
-      '#b4b3df',
+      '#4859f5',
+      '#aa82ff',
     ],
   }, options);
 

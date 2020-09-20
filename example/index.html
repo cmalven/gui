@@ -21,6 +21,9 @@
   };
   const gui = new window.Gui();
 
+  // Listen for MIDI
+  gui.connectMidiRange(0, 15);
+
   const folder1 = gui.setFolder('one');
   gui.add(settings, 'alpha', 0, 200);
   gui.add(settings, 'beta', 0, 200);
