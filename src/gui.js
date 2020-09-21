@@ -317,7 +317,6 @@ const Gui = function(options) {
 
       // Update styles
       if (rowEl) {
-        console.log('yep');
         rowEl.style.borderLeftColor = `${color}`;
         const sliderEl = rowEl.querySelector('.slider-fg');
         sliderEl.style.backgroundColor = `${color}`;
