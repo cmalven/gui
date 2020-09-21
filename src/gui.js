@@ -19,11 +19,11 @@ const Gui = function(options) {
   let self = Object.assign({}, {
     enabled: true,
     gui: new dat.GUI,
-    midiPerColor: 2,
+    midiPerColor: 4,
     colors: [
       '#ee907b',
       '#2ed9c3',
-      '#4859f5',
+      '#4888f5',
       '#aa82ff',
     ],
   }, options);
@@ -123,7 +123,7 @@ const Gui = function(options) {
 
     // Turn into a normal javascript object
     allSettings.replace(/\\"/g, '\uFFFF');
-    allSettings = allSettings.replace(/"([^"]+)":/g, '$1:').replace(/\uFFFF/g, '\\\"');
+    allSettings = allSettings.replace(/"([^"]+)":/g, '$1:').replace(/\uFFFF/g, '\\"');
 
     // Replace double quotes with single
     allSettings.replace(/"/g, "'");
@@ -157,19 +157,6 @@ const Gui = function(options) {
   const _addStyles = function() {
     let css = document.createElement('style');
     css.type = 'text/css';
-
-    // Add colors
-    let count = 1;
-    self.colors.forEach((color, idx) => {
-      for (var i = 0, length = self.midiPerColor; i < length; i++) {
-        css.appendChild(document.createTextNode(`
-          .dg .cr:nth-child(${self.colors.length * self.midiPerColor}n + ${count}) {
-            border-left-color: ${color};
-          }
-        `));
-        count++;
-      }
-    });
 
     // Add save styles
     css.appendChild(document.createTextNode(`
@@ -319,6 +306,25 @@ const Gui = function(options) {
     return folders.length ? folders : [self.gui];
   };
 
+  const _updateControllerColors = function() {
+    const allControllers = self.getControllers(false);
+
+    allControllers.forEach((controller, idx) => {
+      const colorIdx = Math.floor(idx / self.midiPerColor);
+      const color = self.colors[colorIdx];
+      const el = controller.domElement;
+      const rowEl = el.closest('.cr.number.has-slider');
+
+      // Update styles
+      if (rowEl) {
+        console.log('yep');
+        rowEl.style.borderLeftColor = `${color}`;
+        const sliderEl = rowEl.querySelector('.slider-fg');
+        sliderEl.style.backgroundColor = `${color}`;
+      }
+    });
+  };
+
   self._mapRange = function(inMin, inMax, outMin, outMax, value) {
     return (value - inMin) * (outMax - outMin) / (inMax - inMin) + outMin;
   };
@@ -327,24 +333,21 @@ const Gui = function(options) {
     return Math.round(value / snapIncrement) * snapIncrement;
   };
 
-  self._getNumericControllerAtIndex = function(idx) {
+  self._getNumericControllerAtIndex = function(idx, openOnly = false) {
     // Get all number controllers and attempt to find the one matching the index of this control
-    const allControllers = self.getControllers().filter(controller => {
+    const allControllers = self.getControllers(openOnly).filter(controller => {
       return typeof controller.min !== undefined && typeof controller.max !== undefined;
     });
-    const controller = allControllers[idx];
-    return controller;
+    return allControllers[idx];
   };
 
   self._getAggregatedSettings = function() {
     const allFolders = _getAllFolders();
     return allFolders.reduce((acc, folder) => {
-      let folderValues = folder.__controllers.reduce((controllerAcc, controller) => {
+      acc[folder.name] = folder.__controllers.reduce((controllerAcc, controller) => {
         controllerAcc[controller.property] = controller.getValue();
         return controllerAcc;
       }, {});
-
-      acc[folder.name] = folderValues;
       return acc;
     }, {});
   };
@@ -360,16 +363,16 @@ const Gui = function(options) {
     // Add the controller
     const controller = currentFolder.add.apply(currentFolder, params);
 
+    // Update controller colors
+    _updateControllerColors();
+
     // Hand back the controller for chaining
     return controller;
   };
 
   self.addColor = function(...params) {
     // Add the controller
-    const controller = currentFolder.addColor.apply(currentFolder, params);
-
-    // Hand back the controller for chaining
-    return controller;
+    return currentFolder.addColor.apply(currentFolder, params);
   };
 
   self.setFolder = function(name) {
@@ -379,15 +382,15 @@ const Gui = function(options) {
     return folder;
   };
 
-  self.getControllers = function() {
+  self.getControllers = function(openOnly = false) {
     const allFolders = _getAllFolders();
-    const openFolders = allFolders.filter(folder => !folder.closed);
+    const targetFolders = openOnly
+      ? allFolders.filter(folder => !folder.closed)
+      : allFolders;
 
-    const allControllers = openFolders.reduce((acc, gui) => {
+    return targetFolders.reduce((acc, gui) => {
       return acc.concat(gui.__controllers);
     }, []);
-
-    return allControllers;
   };
 
   self.removeFolder = function(folder) {

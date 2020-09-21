@@ -49,14 +49,34 @@ describe('Gui', () => {
     expect(gui.gui.__folders).toEqual({});
   });
 
-  test('Get all controllers', () => {
+  test('Get all controllers (open only)', () => {
+    gui.setFolder('one');
     gui.add(settings, 'alpha', 0, 200);
     gui.add(settings, 'beta', 0, 200);
-    const controllers = gui.getControllers();
+
+    const folder2 = gui.setFolder('two');
+    gui.add(settings, 'gamma', 0, 200);
+    gui.add(settings, 'delta', 0, 200);
+    folder2.open();
+
+    const controllers = gui.getControllers(true);
     expect(controllers).toHaveLength(2);
   });
 
-  test('Get numeric controller at index', () => {
+  test('Get all controllers (all)', () => {
+    gui.setFolder('one');
+    gui.add(settings, 'alpha', 0, 200);
+    gui.add(settings, 'beta', 0, 200);
+
+    gui.setFolder('two');
+    gui.add(settings, 'gamma', 0, 200);
+    gui.add(settings, 'delta', 0, 200);
+
+    const controllers = gui.getControllers(false);
+    expect(controllers).toHaveLength(4);
+  });
+
+  test('Get numeric controller at index (open only)', () => {
     const folder1 = gui.setFolder('one');
     gui.add(settings, 'alpha', 0, 200);
     gui.add(settings, 'beta', 0, 200);
@@ -66,13 +86,34 @@ describe('Gui', () => {
     gui.add(settings, 'delta', 0, 200);
 
     folder2.open();
-    expect(gui._getNumericControllerAtIndex(0).property).toBe('gamma');
-    expect(gui._getNumericControllerAtIndex(1).property).toBe('delta');
+    expect(gui._getNumericControllerAtIndex(0, true).property).toBe('gamma');
+    expect(gui._getNumericControllerAtIndex(1, true).property).toBe('delta');
     folder1.open();
-    expect(gui._getNumericControllerAtIndex(0).property).toBe('alpha');
-    expect(gui._getNumericControllerAtIndex(1).property).toBe('beta');
-    expect(gui._getNumericControllerAtIndex(2).property).toBe('gamma');
-    expect(gui._getNumericControllerAtIndex(3).property).toBe('delta');
+    expect(gui._getNumericControllerAtIndex(0, true).property).toBe('alpha');
+    expect(gui._getNumericControllerAtIndex(1, true).property).toBe('beta');
+    expect(gui._getNumericControllerAtIndex(2, true).property).toBe('gamma');
+    expect(gui._getNumericControllerAtIndex(3, true).property).toBe('delta');
+  });
+
+  test('Get numeric controller at index (all)', () => {
+    const folder1 = gui.setFolder('one');
+    gui.add(settings, 'alpha', 0, 200);
+    gui.add(settings, 'beta', 0, 200);
+
+    const folder2 = gui.setFolder('two');
+    gui.add(settings, 'gamma', 0, 200);
+    gui.add(settings, 'delta', 0, 200);
+
+    folder2.open();
+    expect(gui._getNumericControllerAtIndex(0, false).property).toBe('alpha');
+    expect(gui._getNumericControllerAtIndex(1, false).property).toBe('beta');
+    expect(gui._getNumericControllerAtIndex(2, false).property).toBe('gamma');
+    expect(gui._getNumericControllerAtIndex(3, false).property).toBe('delta');
+    folder1.open();
+    expect(gui._getNumericControllerAtIndex(0, false).property).toBe('alpha');
+    expect(gui._getNumericControllerAtIndex(1, false).property).toBe('beta');
+    expect(gui._getNumericControllerAtIndex(2, false).property).toBe('gamma');
+    expect(gui._getNumericControllerAtIndex(3, false).property).toBe('delta');
   });
 
   test('Get aggregated settings', () => {
@@ -104,7 +145,7 @@ describe('Gui', () => {
     gui.clear();
 
     // Controllers are gone
-    const controllers = gui.getControllers();
+    const controllers = gui.getControllers(true);
     expect(controllers).toHaveLength(0);
 
     // Folders are gone
