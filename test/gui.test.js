@@ -7,9 +7,9 @@ describe('Gui', () => {
   beforeEach(() => {
     settings = {
       alpha: 1,
-      beta: 1,
-      gamma: 1,
-      delta: 1,
+      beta: 2,
+      gamma: 3,
+      delta: 4,
       color: '#ff0000',
     };
     gui = new Gui();
@@ -26,6 +26,15 @@ describe('Gui', () => {
       initialValue: 1,
       property: 'alpha',
     });
+  });
+
+  test('Get midi value from control value', () => {
+    const controller1 = gui.add(settings, 'alpha', 0, 200);
+    const controller2 = gui.add(settings, 'beta', 0, 200);
+    const midiValue1= gui._controllerValueToMidi(controller1);
+    const midiValue2= gui._controllerValueToMidi(controller2);
+    expect(midiValue1).toBe(1);
+    expect(midiValue2).toBe(2);
   });
 
   test('Adding a color control', () => {
@@ -93,6 +102,7 @@ describe('Gui', () => {
     expect(gui._getNumericControllerAtIndex(1, true).property).toBe('beta');
     expect(gui._getNumericControllerAtIndex(2, true).property).toBe('gamma');
     expect(gui._getNumericControllerAtIndex(3, true).property).toBe('delta');
+    expect(gui._getNumericControllerAtIndex(4, true)).toBeNull();
   });
 
   test('Get numeric controller at index (all)', () => {
@@ -129,11 +139,11 @@ describe('Gui', () => {
     expect(allSettings).toEqual({
       one: {
         alpha: 1,
-        beta: 1,
+        beta: 2,
       },
       two: {
-        gamma: 1,
-        delta: 1,
+        gamma: 3,
+        delta: 4,
       },
     });
   });

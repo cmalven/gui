@@ -41,7 +41,7 @@ const Gui = function(options) {
   let debugMidi = false;
   let hidden = false;
   let Midi = null;
-
+  let midiReady = null;
 
   //
   //   Private Methods
@@ -57,19 +57,25 @@ const Gui = function(options) {
   };
 
   const _addMidi = function() {
-    const webmidiEnabled = navigator.requestMIDIAccess && (!window.env || window.env !== 'production');
+    midiReady = new Promise((res, rej) => {
+      const webmidiEnabled = navigator.requestMIDIAccess;
 
-    if (webmidiEnabled) {
-      Midi = WebMidi;
-      Midi.enable(err => {
-        if (err) {
-          console.error('WebMIDI is not supported in this browser.');
-        } else {
-          console.log('MIDI devices successfully connected.');
-          _setupMidiInputs();
-        }
+      if (webmidiEnabled) {
+        Midi = WebMidi;
+        Midi.enable(err => {
+          if (err) {
+            console.error('WebMIDI is not supported in this browser.');
+          } else {
+            console.log('MIDI devices successfully connected.');
+            _setupMidiInputs();
+            res(Midi);
+          }
+        });
+      }
+    })
+      .catch(err => {
+        console.error(err);
       });
-    }
   };
 
   const _addEventListeners = function() {
@@ -334,10 +340,13 @@ const Gui = function(options) {
 
   self._getNumericControllerAtIndex = function(idx, openOnly = false) {
     // Get all number controllers and attempt to find the one matching the index of this control
-    const allControllers = self.getControllers(openOnly).filter(controller => {
-      return typeof controller.min !== undefined && typeof controller.max !== undefined;
-    });
-    return allControllers[idx];
+    const allControllers = self.getControllers(openOnly);
+    const controllerAtIdx = allControllers[idx];
+    return typeof controllerAtIdx !== 'undefined' &&
+      typeof controllerAtIdx.min !== 'undefined' &&
+      typeof controllerAtIdx.max !== 'undefined'
+      ? controllerAtIdx
+      : null;
   };
 
   self._getAggregatedSettings = function() {
@@ -349,6 +358,15 @@ const Gui = function(options) {
       }, {});
       return acc;
     }, {});
+  };
+
+  self._controllerValueToMidi = function(controller) {
+    const value = controller.getValue();
+    const min = controller.__min;
+    const max = controller.__max;
+    const midiValue = self._mapRange(min, max, 1, 127, value);
+    console.log(midiValue);
+    return Math.round(midiValue);
   };
 
 
@@ -364,6 +382,9 @@ const Gui = function(options) {
 
     // Update controller colors
     _updateControllerColors();
+
+    // Resync midi controller
+    self.syncMidi();
 
     // Hand back the controller for chaining
     return controller;
@@ -448,6 +469,38 @@ const Gui = function(options) {
   self.update = function() {
     self.getControllers().forEach(controller => {
       controller.updateDisplay();
+    });
+  };
+
+  self.syncMidi = function() {
+    // If Midi is unavailable, return
+    if (!Midi) return;
+
+    midiConnectRange.forEach((midiIdx, idx) => {
+      // Get numeric GUI controller at corresponding position
+      const controller = self._getNumericControllerAtIndex(idx);
+
+      midiReady.then(() => {
+        if (controller) {
+          // Update the midi controller to the GUI controllers initial value
+          Midi.outputs.forEach(output => {
+            // Set indicator value
+            const midiValue = self._controllerValueToMidi(controller);
+            output.sendControlChange(midiIdx, midiValue, 1);
+            // Set RGB to max brightness
+            output.sendControlChange(midiIdx, 47, 6);
+          });
+        } else {
+          // If no corresponding GUI controller is found, zero out the value at position
+          Midi.outputs.forEach(output => {
+            output.sendControlChange(midiIdx, 0, 1);
+            // Set RGB to low brightness
+            output.sendControlChange(midiIdx, 20, 6);
+          });
+        }
+      });
+
+
     });
   };
 
