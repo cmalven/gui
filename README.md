@@ -25,9 +25,12 @@ window.APP = {
 if (APP.devMode) {
   APP.gui = new Gui();
 
-  // Connect Knobs and Sliders for the Korg nonKONTROL2 MIDI controler (https://www.korg.com/us/products/computergear/nanokontrol2/)
-  APP.gui.connectMidiRange(16, 23);
-  APP.gui.connectMidiRange(0, 7);
+  // Connect Knobs and for the Midi Fighter Twister MIDI controler (https://store.djtechtools.com/products/midi-fighter-twister?gclid=Cj0KCQjw8rT8BRCbARIsALWiOvRGft2wOKqro0RY2mWY9ezcOwjdcrcwiGX5YDxpo7Pvh9mxCaibqd0aAmcyEALw_wcB)
+  APP.gui.connectMidiRange(0, 15);
+
+  // Connect Knobs and Sliders for the Korg nonKONTROL2 MIDI controller (https://www.korg.com/us/products/computergear/nanokontrol2/)
+  // APP.gui.connectMidiRange(16, 23);
+  // APP.gui.connectMidiRange(0, 7);
 
   // Initially hide the GUI
   APP.gui.hide();
