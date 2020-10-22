@@ -365,7 +365,6 @@ const Gui = function(options) {
     const min = controller.__min;
     const max = controller.__max;
     const midiValue = self._mapRange(min, max, 1, 127, value);
-    console.log(midiValue);
     return Math.round(midiValue);
   };
 
