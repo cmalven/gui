@@ -28,6 +28,22 @@ const Gui = function(options) {
     ],
   }, options);
 
+  // MIDI output devices that we will attempt to automatically sync with GUI
+  const supportedMidiOutputDevices = {
+    'Midi Fighter Twister': {
+      sync: (output, midiIdx, midiValue) => {
+        output.sendControlChange(midiIdx, midiValue, 1);
+        // Set RGB to max brightness
+        output.sendControlChange(midiIdx, 47, 6);
+      },
+      clear: (output, midiIdx) => {
+        output.sendControlChange(midiIdx, 0, 1);
+        // Set RGB to low brightness
+        output.sendControlChange(midiIdx, 20, 6);
+      },
+    },
+  };
+
 
   //
   //   Private Vars
@@ -57,7 +73,7 @@ const Gui = function(options) {
   };
 
   const _addMidi = function() {
-    midiReady = new Promise((res, rej) => {
+    midiReady = new Promise((res) => {
       const webmidiEnabled = navigator.requestMIDIAccess;
 
       if (webmidiEnabled) {
@@ -103,7 +119,7 @@ const Gui = function(options) {
           class="gui-save__textarea"
           name="gui-save-text"
           id="gui-save-text"
-          autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+          autocomplete="off" autocapitalize="off" spellcheck="false"
         ></textarea>
       </div>
     `;
@@ -483,23 +499,23 @@ const Gui = function(options) {
         if (controller) {
           // Update the midi controller to the GUI controllers initial value
           Midi.outputs.forEach(output => {
+            const device = supportedMidiOutputDevices[output.name];
+            if (!device) return;
+
             // Set indicator value
             const midiValue = self._controllerValueToMidi(controller);
-            output.sendControlChange(midiIdx, midiValue, 1);
-            // Set RGB to max brightness
-            output.sendControlChange(midiIdx, 47, 6);
+            device.sync(output, midiIdx, midiValue);
           });
         } else {
           // If no corresponding GUI controller is found, zero out the value at position
           Midi.outputs.forEach(output => {
-            output.sendControlChange(midiIdx, 0, 1);
-            // Set RGB to low brightness
-            output.sendControlChange(midiIdx, 20, 6);
+            const device = supportedMidiOutputDevices[output.name];
+            if (!device) return;
+
+            device.clear(output, midiIdx);
           });
         }
       });
-
-
     });
   };
 
