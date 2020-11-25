@@ -495,26 +495,22 @@ const Gui = function(options) {
       // Get numeric GUI controller at corresponding position
       const controller = self._getNumericControllerAtIndex(idx);
 
+      // New
       midiReady.then(() => {
-        if (controller) {
-          // Update the midi controller to the GUI controllers initial value
-          Midi.outputs.forEach(output => {
-            const device = supportedMidiOutputDevices[output.name];
-            if (!device) return;
+        Midi.outputs.forEach(output => {
+          // Limit to supported devices
+          const device = supportedMidiOutputDevices[output.name];
+          if (!device) return;
 
-            // Set indicator value
+          if (controller) {
+            // Update the midi controller to the GUI controllers initial value
             const midiValue = self._controllerValueToMidi(controller);
-            device.sync(output, midiIdx, midiValue);
-          });
-        } else {
-          // If no corresponding GUI controller is found, zero out the value at position
-          Midi.outputs.forEach(output => {
-            const device = supportedMidiOutputDevices[output.name];
-            if (!device) return;
-
-            device.clear(output, midiIdx);
-          });
-        }
+            if (device.sync) device.sync(output, midiIdx, midiValue);
+          } else {
+            // If no corresponding GUI controller is found, zero out the value at position
+            if (device.clear) device.clear(output, midiIdx);
+          }
+        });
       });
     });
   };
