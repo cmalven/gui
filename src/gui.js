@@ -41,6 +41,15 @@ const Gui = function(options) {
         // Set RGB to low brightness
         output.sendControlChange(midiIdx, 20, 6);
       },
+      configure: () => {
+        self.connectMidiRange(0, 15);
+      },
+    },
+    'nanoKONTROL2 CTRL': {
+      configure: () => {
+        self.connectMidiRange(16, 23);
+        self.connectMidiRange(0, 7);
+      },
     },
   };
 
@@ -485,6 +494,14 @@ const Gui = function(options) {
     self.getControllers().forEach(controller => {
       controller.updateDisplay();
     });
+  };
+
+  self.configureDevice = function(deviceName) {
+    // Limit to supported devices
+    const device = supportedMidiOutputDevices[deviceName];
+    if (!device || !device.configure) return console.warn(`No built-in configuration is available for "${deviceName}"`);
+
+    device.configure();
   };
 
   self.syncMidi = function() {

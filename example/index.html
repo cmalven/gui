@@ -22,7 +22,7 @@
   const gui = new window.Gui();
 
   // Listen for MIDI
-  gui.connectMidiRange(0, 15);
+  gui.configureDevice('Midi Fighter Twister');
 
   const folder1 = gui.setFolder('one');
   folder1.open();
