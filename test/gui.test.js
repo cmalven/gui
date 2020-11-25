@@ -29,12 +29,12 @@ describe('Gui', () => {
   });
 
   test('Get midi value from control value', () => {
-    const controller1 = gui.add(settings, 'alpha', 0, 200);
-    const controller2 = gui.add(settings, 'beta', 0, 200);
+    const controller1 = gui.add(settings, 'alpha', 0, 2);
+    const controller2 = gui.add(settings, 'beta', 0, 2);
     const midiValue1= gui._controllerValueToMidi(controller1);
     const midiValue2= gui._controllerValueToMidi(controller2);
-    expect(midiValue1).toBe(1);
-    expect(midiValue2).toBe(2);
+    expect(midiValue1).toBe(64);
+    expect(midiValue2).toBe(127);
   });
 
   test('Adding a color control', () => {
