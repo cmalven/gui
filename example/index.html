@@ -25,10 +25,12 @@
   gui.connectMidiRange(0, 15);
 
   const folder1 = gui.setFolder('one');
+  folder1.open();
   gui.add(settings, 'alpha', 0, 200);
   gui.add(settings, 'beta', 0, 200);
 
   const folder2 = gui.setFolder('two');
+  folder2.open();
   gui.add(settings, 'gamma', 0, 200);
   gui.add(settings, 'delta', 0, 200);
   gui.addColor(settings, 'color');

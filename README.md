@@ -62,7 +62,8 @@ const createGui = () => {
   APP.gui.setFolder('other');
   APP.gui.add(settings, 'value3', 150, 250).onChange(val => {
     console.log(val);
-});
+  });
+};
 ```
 
 ### Viewing values and copying to clipboard
@@ -139,6 +140,14 @@ Toggles the visibility of the GUI. E.g. if it is hidden it will become visible a
 - Bump `version` in `package.json` appropriately.
 - Create a new Github release identifying changes.
 - A Github Action will automatically run tests and publish the update.
+
+## Development
+
+It can be helpful during development to have the example HTML file auto-update when the library is rebuilt:
+
+```sh
+npm run dev:example
+```
 
 ## Test
 
