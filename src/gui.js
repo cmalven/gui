@@ -95,7 +95,7 @@ const Gui = function(options) {
             _setupMidiInputs();
             res(Midi);
           }
-        });
+        }, true);
       }
     })
       .catch(err => {

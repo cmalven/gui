@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectStartupSharedConfiguration">
+    <configurations>
+      <configuration id="npm.build" name="build" />
+      <configuration id="npm.dev" name="dev" />
+      <configuration id="npm.dev:example" name="dev:example" />
+    </configurations>
+  </component>
+</project>
