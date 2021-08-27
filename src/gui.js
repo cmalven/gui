@@ -20,6 +20,7 @@ const Gui = function(options) {
     enabled: true,
     gui: new dat.GUI,
     midiPerColor: 4,
+    midi: true,
     colors: [
       '#ee907b',
       '#2ed9c3',
@@ -82,6 +83,8 @@ const Gui = function(options) {
   };
 
   const _addMidi = function() {
+    if (!self.midi) return;
+
     midiReady = new Promise((res) => {
       const webmidiEnabled = navigator.requestMIDIAccess;
 
