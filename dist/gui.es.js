@@ -1,3 +1,9 @@
+var __defProp = Object.defineProperty;
+var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+var __publicField = (obj, key, value) => {
+  __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
+  return value;
+};
 function ___$insertStyle(css2) {
   if (!css2) {
     return;
@@ -3515,108 +3521,132 @@ clipboard.readSync = () => {
 clipboard.writeSync = () => {
   throw new Error("`.writeSync()` is not supported in browsers!");
 };
-const Gui = function(options) {
-  const self2 = Object.assign({}, {
-    enabled: true,
-    gui: new GUI$1(),
-    midiPerColor: 4,
-    midi: true,
-    colors: [
-      "#ee907b",
-      "#2ed9c3",
-      "#4888f5",
-      "#aa82ff"
-    ],
-    add: function(target, key, minValue, maxValue, step) {
-      const controller = currentFolder.add(target, key, minValue, maxValue, step);
-      _updateControllerColors();
-      self2.syncMidi();
+class Gui {
+  constructor(options = {}) {
+    __publicField(this, "enabled", true);
+    __publicField(this, "gui", new GUI$1());
+    __publicField(this, "midiPerColor");
+    __publicField(this, "midi");
+    __publicField(this, "colors");
+    __publicField(this, "folders", []);
+    __publicField(this, "currentFolder", this.gui);
+    __publicField(this, "midiConnectRange", []);
+    __publicField(this, "customControls", {});
+    __publicField(this, "debugMidi", false);
+    __publicField(this, "hidden", false);
+    __publicField(this, "Midi", null);
+    __publicField(this, "midiReady");
+    __publicField(this, "supportedMidiOutputDevices", {
+      "Midi Fighter Twister": {
+        sync: (output, midiIdx, midiValue) => {
+          output.sendControlChange(midiIdx, midiValue, 1);
+          output.sendControlChange(midiIdx, 47, 6);
+        },
+        clear: (output, midiIdx) => {
+          output.sendControlChange(midiIdx, 0, 1);
+          output.sendControlChange(midiIdx, 20, 6);
+        },
+        configure: () => {
+          this.connectMidiRange(0, 15);
+        }
+      },
+      "nanoKONTROL2 CTRL": {
+        configure: () => {
+          this.connectMidiRange(16, 23);
+          this.connectMidiRange(0, 7);
+        }
+      }
+    });
+    __publicField(this, "add", (target, key, minValue, maxValue, step) => {
+      const controller = this.currentFolder.add(target, key, minValue, maxValue, step);
+      this._updateControllerColors();
+      this.syncMidi();
       return controller;
-    },
-    addColor: function(target, key) {
-      return currentFolder.addColor(target, key);
-    },
-    setFolder: function(name) {
-      const folder = self2.gui.addFolder(name);
-      folders.push(folder);
-      currentFolder = folder;
+    });
+    __publicField(this, "addColor", (target, key) => {
+      return this.currentFolder.addColor(target, key);
+    });
+    __publicField(this, "setFolder", (name) => {
+      const folder = this.gui.addFolder(name);
+      this.folders.push(folder);
+      this.currentFolder = folder;
       return folder;
-    },
-    getControllers: function(openOnly = false) {
-      const allFolders = _getAllFolders();
+    });
+    __publicField(this, "getControllers", (openOnly = false) => {
+      const allFolders = this._getAllFolders();
       const targetFolders = openOnly ? allFolders.filter((folder) => !folder.closed) : allFolders;
       return targetFolders.reduce((acc, gui) => {
         return acc.concat(gui.__controllers);
       }, []);
-    },
-    removeFolder: function(folder) {
-      const folderIdx = folders.findIndex((existingFolder) => existingFolder.name === folder.name);
-      folders.splice(folderIdx, 1);
-      self2.gui.removeFolder(folder);
-      currentFolder = self2.gui;
-    },
-    connectMidiRange: function(start, end) {
+    });
+    __publicField(this, "removeFolder", (folder) => {
+      const folderIdx = this.folders.findIndex((existingFolder) => existingFolder.name === folder.name);
+      this.folders.splice(folderIdx, 1);
+      this.gui.removeFolder(folder);
+      this.currentFolder = this.gui;
+    });
+    __publicField(this, "connectMidiRange", (start, end) => {
       for (let idx = start, length = end + 1; idx < length; idx++) {
-        midiConnectRange.push(idx);
+        this.midiConnectRange.push(idx);
       }
-    },
-    addControl: function(note, callback) {
-      customControls[note] = callback;
-    },
-    destroy: function() {
-      self2.gui.destroy();
-      if (Midi) {
-        Midi.inputs.forEach((input) => {
+    });
+    __publicField(this, "addControl", (note, callback) => {
+      this.customControls[note] = callback;
+    });
+    __publicField(this, "destroy", () => {
+      this.gui.destroy();
+      if (this.Midi) {
+        this.Midi.inputs.forEach((input) => {
           input.removeListener("midimessage", "all");
         });
-        Midi.disable();
+        this.Midi.disable();
       }
-    },
-    clear: function() {
-      self2.gui.destroy();
-      self2.gui = new GUI$1();
-      currentFolder = self2.gui;
-      customControls = {};
-    },
-    hide: function() {
-      hidden = true;
-      self2.gui.hide();
-    },
-    show: function() {
-      hidden = false;
-      self2.gui.show();
-    },
-    toggle: function() {
-      hidden = !hidden;
-      if (hidden) {
-        self2.hide();
+    });
+    __publicField(this, "clear", () => {
+      this.gui.destroy();
+      this.gui = new GUI$1();
+      this.currentFolder = this.gui;
+      this.customControls = {};
+    });
+    __publicField(this, "hide", () => {
+      this.hidden = true;
+      this.gui.hide();
+    });
+    __publicField(this, "show", () => {
+      this.hidden = false;
+      this.gui.show();
+    });
+    __publicField(this, "toggle", () => {
+      this.hidden = !this.hidden;
+      if (this.hidden) {
+        this.hide();
       } else {
-        self2.show();
+        this.show();
       }
-    },
-    update: function() {
-      self2.getControllers().forEach((controller) => {
+    });
+    __publicField(this, "update", () => {
+      this.getControllers().forEach((controller) => {
         controller.updateDisplay();
       });
-    },
-    configureDevice: function(deviceName) {
-      const device = supportedMidiOutputDevices[deviceName];
+    });
+    __publicField(this, "configureDevice", (deviceName) => {
+      const device = this.supportedMidiOutputDevices[deviceName];
       if (!device || !device.configure)
         return console.warn(`No built-in configuration is available for "${deviceName}"`);
       device.configure();
-    },
-    syncMidi: function() {
-      if (!Midi)
+    });
+    __publicField(this, "syncMidi", () => {
+      if (!this.Midi)
         return;
-      midiConnectRange.forEach((midiIdx, idx) => {
-        const controller = self2._getNumericControllerAtIndex(idx);
-        midiReady.then(() => {
-          Midi.outputs.forEach((output) => {
-            const device = supportedMidiOutputDevices[output.name];
+      this.midiConnectRange.forEach((midiIdx, idx) => {
+        const controller = this._getNumericControllerAtIndex(idx);
+        this.midiReady.then(() => {
+          this.Midi.outputs.forEach((output) => {
+            const device = this.supportedMidiOutputDevices[output.name];
             if (!device)
               return;
             if (controller) {
-              const midiValue = self2._controllerValueToMidi(controller);
+              const midiValue = this._controllerValueToMidi(controller);
               if (device.sync)
                 device.sync(output, midiIdx, midiValue);
             } else {
@@ -3626,20 +3656,20 @@ const Gui = function(options) {
           });
         });
       });
-    },
-    _mapRange: function(inMin, inMax, outMin, outMax, value) {
+    });
+    __publicField(this, "_mapRange", (inMin, inMax, outMin, outMax, value) => {
       return (value - inMin) * (outMax - outMin) / (inMax - inMin) + outMin;
-    },
-    _snap: function(snapIncrement, value) {
+    });
+    __publicField(this, "_snap", (snapIncrement, value) => {
       return Math.round(value / snapIncrement) * snapIncrement;
-    },
-    _getNumericControllerAtIndex: function(idx, openOnly = false) {
-      const allControllers = self2.getControllers(openOnly);
+    });
+    __publicField(this, "_getNumericControllerAtIndex", (idx, openOnly = false) => {
+      const allControllers = this.getControllers(openOnly);
       const controllerAtIdx = allControllers[idx];
       return typeof controllerAtIdx !== "undefined" && typeof controllerAtIdx.min !== "undefined" && typeof controllerAtIdx.max !== "undefined" ? controllerAtIdx : null;
-    },
-    _getAggregatedSettings: function() {
-      const allFolders = _getAllFolders();
+    });
+    __publicField(this, "_getAggregatedSettings", () => {
+      const allFolders = this._getAllFolders();
       return allFolders.reduce((acc, folder) => {
         acc[folder.name] = folder.__controllers.reduce((controllerAcc, controller) => {
           controllerAcc[controller.property] = controller.getValue();
@@ -3647,284 +3677,265 @@ const Gui = function(options) {
         }, {});
         return acc;
       }, {});
-    },
-    _controllerValueToMidi: function(controller) {
+    });
+    __publicField(this, "_controllerValueToMidi", (controller) => {
       const value = controller.getValue();
       const min = controller.__min;
       const max = controller.__max;
-      const midiValue = self2._mapRange(min, max, 1, 127, value);
+      const midiValue = this._mapRange(min, max, 1, 127, value);
       return Math.round(midiValue);
-    }
-  }, options);
-  const supportedMidiOutputDevices = {
-    "Midi Fighter Twister": {
-      sync: (output, midiIdx, midiValue) => {
-        output.sendControlChange(midiIdx, midiValue, 1);
-        output.sendControlChange(midiIdx, 47, 6);
-      },
-      clear: (output, midiIdx) => {
-        output.sendControlChange(midiIdx, 0, 1);
-        output.sendControlChange(midiIdx, 20, 6);
-      },
-      configure: () => {
-        self2.connectMidiRange(0, 15);
-      }
-    },
-    "nanoKONTROL2 CTRL": {
-      configure: () => {
-        self2.connectMidiRange(16, 23);
-        self2.connectMidiRange(0, 7);
-      }
-    }
-  };
-  const folders = [];
-  let currentFolder = self2.gui;
-  const midiConnectRange = [];
-  let customControls = {};
-  let debugMidi = false;
-  let hidden = false;
-  let Midi = null;
-  let midiReady;
-  const _init = function() {
-    _addMidi();
-    _addEventListeners();
-    _addSaveMarkup();
-    _addSaveEventListeners();
-    _addStyles();
-  };
-  const _addMidi = function() {
-    if (!self2.midi)
-      return;
-    midiReady = new Promise((res) => {
-      const webmidiEnabled = navigator.requestMIDIAccess;
-      if (webmidiEnabled) {
-        Midi = WebMidi;
-        Midi.enable((err) => {
-          if (err) {
-            console.error("WebMIDI is not supported in this browser.");
-          } else {
-            console.log("MIDI devices successfully connected.");
-            _setupMidiInputs();
-            res(Midi);
-          }
-        }, true);
-      }
-    }).catch((err) => {
-      console.error(err);
     });
-  };
-  const _addEventListeners = function() {
-    document.addEventListener("keydown", ({ keyCode }) => {
-      if (keyCode === 18)
-        debugMidi = true;
+    __publicField(this, "_init", () => {
+      this._addMidi();
+      this._addEventListeners();
+      this._addSaveMarkup();
+      this._addSaveEventListeners();
+      this._addStyles();
     });
-    document.addEventListener("keyup", ({ keyCode }) => {
-      if (keyCode === 18)
-        debugMidi = false;
+    __publicField(this, "_addMidi", () => {
+      if (!this.midi)
+        return;
+      this.midiReady = new Promise((res) => {
+        const webmidiEnabled = navigator.requestMIDIAccess;
+        if (webmidiEnabled) {
+          this.Midi = WebMidi;
+          this.Midi.enable((err) => {
+            if (err) {
+              console.error("WebMIDI is not supported in this browser.");
+            } else {
+              console.log("MIDI devices successfully connected.");
+              this._setupMidiInputs();
+              res(this.Midi);
+            }
+          }, true);
+        }
+      }).catch((err) => {
+        console.error(err);
+      });
     });
-    document.addEventListener("keyup", ({ keyCode }) => {
-      if (keyCode === 17)
-        self2.toggle();
+    __publicField(this, "_addEventListeners", () => {
+      document.addEventListener("keydown", ({ keyCode }) => {
+        if (keyCode === 18)
+          this.debugMidi = true;
+      });
+      document.addEventListener("keyup", ({ keyCode }) => {
+        if (keyCode === 18)
+          this.debugMidi = false;
+      });
+      document.addEventListener("keyup", ({ keyCode }) => {
+        if (keyCode === 17)
+          this.toggle();
+      });
     });
-  };
-  const _addSaveMarkup = () => {
-    const markup = `
-      <div class="gui-save__inner">
-        <span class="gui-save__close">&times;</span>
-        <p class="gui-save__clipboard-notification">This code has been saved to your clipboard.</p>
-        <textarea
-          class="gui-save__textarea"
-          name="gui-save-text"
-          id="gui-save-text"
-          autocomplete="off" autocapitalize="off" spellcheck="false"
-        ></textarea>
-      </div>
-    `;
-    const container = document.querySelector("body");
-    const newEl = document.createElement("div");
-    newEl.classList.add("gui-save");
-    newEl.innerHTML = markup;
-    container.appendChild(newEl);
-    container.insertBefore(newEl, null);
-    container.insertBefore(newEl, container.childNodes[0] || null);
-  };
-  const _addSaveEventListeners = () => {
-    mousetrap.exports.bind("alt+s", _saveMarkup);
-    mousetrap.exports.bind("esc", _closeSave);
-    document.querySelector(".gui-save__close").addEventListener("click", _closeSave);
-  };
-  const _saveMarkup = () => {
-    const allSettings = self2._getAggregatedSettings();
-    const allSettingsJson = JSON.stringify(allSettings, null, 1);
-    let allSettingsFormatted = allSettingsJson.replace(/\\"/g, "\uFFFF");
-    allSettingsFormatted = allSettingsFormatted.replace(/"([^"]+)":/g, "$1:").replace(/\uFFFF/g, '\\"');
-    allSettingsFormatted.replace(/"/g, "'");
-    const textarea = document.querySelector(".gui-save__textarea");
-    textarea.value = allSettingsFormatted;
-    _openSave();
-    _copySaveToClipboard();
-  };
-  const _openSave = () => {
-    document.querySelector(".gui-save").classList.add("is-visible");
-  };
-  const _copySaveToClipboard = () => {
-    const textarea = document.querySelector(".gui-save__textarea");
-    clipboard.write(textarea.value);
-    const clipboardNotificationEl = document.querySelector(".gui-save__clipboard-notification");
-    clipboardNotificationEl.classList.add("is-visible");
-    window.setTimeout(() => {
-      clipboardNotificationEl.classList.remove("is-visible");
-    }, 2e3);
-  };
-  const _closeSave = () => {
-    document.querySelector(".gui-save").classList.remove("is-visible");
-  };
-  const _addStyles = function() {
-    const css2 = document.createElement("style");
-    css2.type = "text/css";
-    css2.appendChild(document.createTextNode(`
-      .dg.ac {
-        z-index: 9999;
-      }
-
-      .gui-save {
-        display: none;
-        position: fixed;
-        top: 0;
-        right: 0;
-        bottom: 0;
-        left: 0;
-        justify-content: center;
-        align-items: center;
-        box-sizing: border-box;
-        background-color: rgba(255, 255, 255, 0.1);
-        z-index: 999;
-      }
-
-      .gui-save *, .gui-save *:before, .gui-save *:after {
-        box-sizing: inherit;
-      }
-
-      .gui-save.is-visible {
-        display: flex;
-      }
-
-      .gui-save__inner {
-        position: relative;
-        width: 100%;
-        max-width: 400px;
-        margin: 20px;
-      }
-
-      .gui-save__textarea {
-        appearance: none;
-        border-radius: 5px;
-        border: none;
-        background-color: #1f1f1f;
-        width: 100%;
-        height: 300px;
-        padding: 25px 23px;
-        border-left: 4px solid #5887da;
-        font-family: 'Courier New', Courier, 'Lucida Sans Typewriter', 'Lucida Typewriter', monospace;
-        font-size: 14px;
-        line-height: 1.5;
-        font-weight: normal;
-        color: white;
-        transition: border-color 0.2s;
-      }
-
-      .gui-save__textarea:focus {
-        outline: none;
-        border-color: #ee907b;
-      }
-
-      .gui-save__clipboard-notification {
-        font-family: 'Courier New', Courier, 'Lucida Sans Typewriter', 'Lucida Typewriter', monospace;
-        font-size: 13px;
-        pointer-events: none;
-        position: absolute;
-        bottom: -45px;
-        left: 0;
-        right: 0;
-        opacity: 0;
-        color: #5887da;
-        transition: opacity 0.4s;
-      }
-
-      .gui-save__clipboard-notification.is-visible {
-        opacity: 1;
-      }
-
-      .gui-save__close {
-        position: absolute;
-        width: 35px;
-        height: 35px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        top: 0;
-        right: 0;
-        z-index: 1;
-        font-size: 18px;
-        cursor: pointer;
-        color: #fff;
-      }
-
-      .gui-save__close:active {
-        opacity: 0.7;
-      }
-    `));
-    document.querySelector("head").appendChild(css2);
-  };
-  const _setupMidiInputs = function() {
-    Midi.inputs.forEach((input) => {
-      input.addListener("midimessage", "all", _onMidiMessage);
+    __publicField(this, "_addSaveMarkup", () => {
+      const markup = `
+  <div class="gui-save__inner">
+    <span class="gui-save__close">&times;</span>
+    <p class="gui-save__clipboard-notification">This code has been saved to your clipboard.</p>
+    <textarea
+      class="gui-save__textarea"
+      name="gui-save-text"
+      id="gui-save-text"
+      autocomplete="off" autocapitalize="off" spellcheck="false"
+    ></textarea>
+  </div>
+`;
+      const container = document.querySelector("body");
+      const newEl = document.createElement("div");
+      newEl.classList.add("gui-save");
+      newEl.innerHTML = markup;
+      container.appendChild(newEl);
+      container.insertBefore(newEl, null);
+      container.insertBefore(newEl, container.childNodes[0] || null);
     });
-  };
-  const _onMidiMessage = function(message) {
-    const [command, note, velocity] = message.data;
-    if (debugMidi)
-      console.log(`command: ${command} / note: ${note} / velocity: ${velocity}`);
-    _controlRangeChange(note, velocity);
-    _customControlChange(note, velocity);
-  };
-  const _controlRangeChange = function(note, velocity) {
-    const controlIdx = midiConnectRange.indexOf(note);
-    if (controlIdx < 0)
-      return;
-    const controller = self2._getNumericControllerAtIndex(controlIdx);
-    if (!controller)
-      return;
-    const { __min: min, __max: max, __step: step } = controller;
-    const adjustedStep = step ? step : (max - min) / 127;
-    const scaledValue = self2._mapRange(0, 127, min, max, velocity);
-    const snappedValue = self2._snap(adjustedStep.toFixed(5), scaledValue);
-    controller.setValue(snappedValue);
-  };
-  const _customControlChange = function(note, velocity) {
-    if (customControls[note]) {
-      customControls[note].call(self2, velocity);
-    }
-  };
-  const _getAllFolders = () => {
-    return folders.length ? folders : [self2.gui];
-  };
-  const _updateControllerColors = function() {
-    const allControllers = self2.getControllers(false);
-    allControllers.forEach((controller, idx) => {
-      const colorIdx = Math.floor(idx / self2.midiPerColor);
-      const color = self2.colors[colorIdx];
-      const el = controller.domElement;
-      const rowEl = el.closest(".cr.number.has-slider");
-      if (rowEl) {
-        rowEl.style.borderLeftColor = `${color}`;
-        const sliderEl = rowEl.querySelector(".slider-fg");
-        sliderEl.style.backgroundColor = `${color}`;
+    __publicField(this, "_addSaveEventListeners", () => {
+      mousetrap.exports.bind("alt+s", this._saveMarkup);
+      mousetrap.exports.bind("esc", this._closeSave);
+      document.querySelector(".gui-save__close").addEventListener("click", this._closeSave);
+    });
+    __publicField(this, "_saveMarkup", () => {
+      const allSettings = this._getAggregatedSettings();
+      const allSettingsJson = JSON.stringify(allSettings, null, 1);
+      let allSettingsFormatted = allSettingsJson.replace(/\\"/g, "\uFFFF");
+      allSettingsFormatted = allSettingsFormatted.replace(/"([^"]+)":/g, "$1:").replace(/\uFFFF/g, '\\"');
+      allSettingsFormatted.replace(/"/g, "'");
+      const textarea = document.querySelector(".gui-save__textarea");
+      textarea.value = allSettingsFormatted;
+      this._openSave();
+      this._copySaveToClipboard();
+    });
+    __publicField(this, "_openSave", () => {
+      document.querySelector(".gui-save").classList.add("is-visible");
+    });
+    __publicField(this, "_copySaveToClipboard", () => {
+      const textarea = document.querySelector(".gui-save__textarea");
+      clipboard.write(textarea.value);
+      const clipboardNotificationEl = document.querySelector(".gui-save__clipboard-notification");
+      clipboardNotificationEl.classList.add("is-visible");
+      window.setTimeout(() => {
+        clipboardNotificationEl.classList.remove("is-visible");
+      }, 2e3);
+    });
+    __publicField(this, "_closeSave", () => {
+      document.querySelector(".gui-save").classList.remove("is-visible");
+    });
+    __publicField(this, "_addStyles", () => {
+      const css2 = document.createElement("style");
+      css2.type = "text/css";
+      css2.appendChild(document.createTextNode(`
+  .dg.ac {
+    z-index: 9999;
+  }
+
+  .gui-save {
+    display: none;
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    justify-content: center;
+    align-items: center;
+    box-sizing: border-box;
+    background-color: rgba(255, 255, 255, 0.1);
+    z-index: 999;
+  }
+
+  .gui-save *, .gui-save *:before, .gui-save *:after {
+    box-sizing: inherit;
+  }
+
+  .gui-save.is-visible {
+    display: flex;
+  }
+
+  .gui-save__inner {
+    position: relative;
+    width: 100%;
+    max-width: 400px;
+    margin: 20px;
+  }
+
+  .gui-save__textarea {
+    appearance: none;
+    border-radius: 5px;
+    border: none;
+    background-color: #1f1f1f;
+    width: 100%;
+    height: 300px;
+    padding: 25px 23px;
+    border-left: 4px solid #5887da;
+    font-family: 'Courier New', Courier, 'Lucida Sans Typewriter', 'Lucida Typewriter', monospace;
+    font-size: 14px;
+    line-height: 1.5;
+    font-weight: normal;
+    color: white;
+    transition: border-color 0.2s;
+  }
+
+  .gui-save__textarea:focus {
+    outline: none;
+    border-color: #ee907b;
+  }
+
+  .gui-save__clipboard-notification {
+    font-family: 'Courier New', Courier, 'Lucida Sans Typewriter', 'Lucida Typewriter', monospace;
+    font-size: 13px;
+    pointer-events: none;
+    position: absolute;
+    bottom: -45px;
+    left: 0;
+    right: 0;
+    opacity: 0;
+    color: #5887da;
+    transition: opacity 0.4s;
+  }
+
+  .gui-save__clipboard-notification.is-visible {
+    opacity: 1;
+  }
+
+  .gui-save__close {
+    position: absolute;
+    width: 35px;
+    height: 35px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    top: 0;
+    right: 0;
+    z-index: 1;
+    font-size: 18px;
+    cursor: pointer;
+    color: #fff;
+  }
+
+  .gui-save__close:active {
+    opacity: 0.7;
+  }
+`));
+      document.querySelector("head").appendChild(css2);
+    });
+    __publicField(this, "_setupMidiInputs", () => {
+      this.Midi.inputs.forEach((input) => {
+        input.addListener("midimessage", "all", this._onMidiMessage);
+      });
+    });
+    __publicField(this, "_onMidiMessage", (message) => {
+      const [command, note, velocity] = message.data;
+      if (this.debugMidi)
+        console.log(`command: ${command} / note: ${note} / velocity: ${velocity}`);
+      this._controlRangeChange(note, velocity);
+      this._customControlChange(note, velocity);
+    });
+    __publicField(this, "_controlRangeChange", (note, velocity) => {
+      const controlIdx = this.midiConnectRange.indexOf(note);
+      if (controlIdx < 0)
+        return;
+      const controller = this._getNumericControllerAtIndex(controlIdx);
+      if (!controller)
+        return;
+      const { __min: min, __max: max, __step: step } = controller;
+      const adjustedStep = step ? step : (max - min) / 127;
+      const scaledValue = this._mapRange(0, 127, min, max, velocity);
+      const snappedValue = this._snap(adjustedStep.toFixed(5), scaledValue);
+      controller.setValue(snappedValue);
+    });
+    __publicField(this, "_customControlChange", (note, velocity) => {
+      if (this.customControls[note]) {
+        this.customControls[note].call(self, velocity);
       }
     });
-  };
-  _init();
-  return self2;
-};
+    __publicField(this, "_getAllFolders", () => {
+      return this.folders.length ? this.folders : [this.gui];
+    });
+    __publicField(this, "_updateControllerColors", () => {
+      const allControllers = this.getControllers(false);
+      allControllers.forEach((controller, idx) => {
+        const colorIdx = Math.floor(idx / this.midiPerColor);
+        const color = this.colors[colorIdx];
+        const el = controller.domElement;
+        const rowEl = el.closest(".cr.number.has-slider");
+        if (rowEl) {
+          rowEl.style.borderLeftColor = `${color}`;
+          const sliderEl = rowEl.querySelector(".slider-fg");
+          sliderEl.style.backgroundColor = `${color}`;
+        }
+      });
+    });
+    const defaultOptions = {
+      midi: true,
+      colors: [
+        "#ee907b",
+        "#2ed9c3",
+        "#4888f5",
+        "#aa82ff"
+      ],
+      midiPerColor: 4
+    };
+    Object.assign(this, defaultOptions, options);
+    this._init();
+  }
+}
 export { Gui as default };
 //# sourceMappingURL=gui.es.js.map
