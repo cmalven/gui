@@ -3533,8 +3533,8 @@ const Gui = function(options) {
       self2.syncMidi();
       return controller;
     },
-    addColor: function(...params) {
-      return currentFolder.addColor.apply(currentFolder, params);
+    addColor: function(target, key) {
+      return currentFolder.addColor(target, key);
     },
     setFolder: function(name) {
       const folder = self2.gui.addFolder(name);

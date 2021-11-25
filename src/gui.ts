@@ -18,6 +18,8 @@ type Options = {
   midiPerColor: number;
 }
 
+type Target = Record<string, unknown>;
+
 type Setting = { [key: string]: number | boolean };
 
 type Folders = { [key: string]: Setting };
@@ -64,9 +66,9 @@ const Gui = function(options: Options) {
       return controller;
     },
 
-    addColor: function(...params): dat.GUI {
+    addColor: function(target: Target, key: string): dat.GUIController {
       // Add the controller
-      return currentFolder.addColor.apply(currentFolder, params);
+      return currentFolder.addColor(target, key);
     },
 
     setFolder: function(name: string) {
