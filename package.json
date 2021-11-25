@@ -34,6 +34,7 @@
     "@typescript-eslint/parser": "^5.4.0",
     "babel-eslint": "^10.1.0",
     "browser-sync": "^2.27.7",
+    "chokidar-cli": "^3.0.0",
     "core-js": "^3.6.5",
     "eslint-plugin-react": "^7.27.1",
     "jest": "^25.5.4",
@@ -53,7 +54,7 @@
   "scripts": {
     "build": "vite build && tsc",
     "test": "jest",
-    "dev": "vite build && jest --watchAll",
+    "dev": "jest --watchAll & chokidar 'src/**/*' 'test/**/*' -c 'vite build'",
     "dev:example": "browser-sync start --server --files '**/*.html' 'dist/**/*.js' --index 'example/index.html' --no-open --port 3333"
   }
 }

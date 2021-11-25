@@ -18,6 +18,16 @@ type Options = {
   midiPerColor: number;
 }
 
+type Setting = { [key: string]: number | boolean };
+
+type Folders = { [key: string]: Setting };
+
+type SupportedMidiOutputDevices = { [key: string]: {
+    sync?: (output: Output, midiIdx: number, midiValue: number) => void,
+    clear?: (output: Output, midiIdx: number) => void,
+    configure?: () => void,
+  }};
+
 const Gui = function(options: Options) {
   //
   //   Public Vars
@@ -198,8 +208,8 @@ const Gui = function(options: Options) {
 
     _getAggregatedSettings: function(): object {
       const allFolders = _getAllFolders();
-      return allFolders.reduce((acc, folder: dat.GUI) => {
-        acc[folder.name] = folder.__controllers.reduce((controllerAcc, controller: dat.GUIController) => {
+      return allFolders.reduce((acc: Folders, folder: dat.GUI) => {
+        acc[folder.name] = folder.__controllers.reduce((controllerAcc: Setting, controller: dat.GUIController) => {
           controllerAcc[controller.property] = controller.getValue();
           return controllerAcc;
         }, {});
@@ -215,12 +225,6 @@ const Gui = function(options: Options) {
       return Math.round(midiValue);
     },
   }, options);
-
-  type SupportedMidiOutputDevices = { [key: string]: {
-    sync?: (output: Output, midiIdx: number, midiValue: number) => void,
-    clear?: (output: Output, midiIdx: number) => void,
-    configure?: () => void,
-  }};
 
   // MIDI output devices that we will attempt to automatically sync with GUI
   const supportedMidiOutputDevices: SupportedMidiOutputDevices = {
