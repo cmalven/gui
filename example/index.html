@@ -18,6 +18,7 @@
     gamma: 3,
     delta: 4,
     color: '#ff0000',
+    boolean: false,
   };
   const gui = new window.Gui();
 
@@ -33,6 +34,7 @@
   folder2.open();
   gui.add(settings, 'gamma', 0, 24);
   gui.add(settings, 'delta', 0, 24);
+  gui.add(settings, 'boolean');
   gui.addColor(settings, 'color');
 </script>
 </body>

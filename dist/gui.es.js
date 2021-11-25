@@ -3527,8 +3527,8 @@ const Gui = function(options) {
       "#4888f5",
       "#aa82ff"
     ],
-    add: function(...params) {
-      const controller = currentFolder.add.apply(currentFolder, params);
+    add: function(target, key, minValue, maxValue, step) {
+      const controller = currentFolder.add(target, key, minValue, maxValue, step);
       _updateControllerColors();
       self2.syncMidi();
       return controller;

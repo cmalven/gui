@@ -52,9 +52,9 @@ const Gui = function(options: Options) {
     //   Public Methods
     //
 
-    add: function(...params) {
+    add: function(target: Target, key: string, minValue?: number, maxValue?: number, step?: number) {
       // Add the controller
-      const controller = currentFolder.add.apply(currentFolder, params);
+      const controller = currentFolder.add(target, key, minValue, maxValue, step);
 
       // Update controller colors
       _updateControllerColors();
