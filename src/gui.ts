@@ -1,7 +1,7 @@
-import dat from 'dat.gui';
-import WebMidi from 'webmidi';
-import Mousetrap from 'mousetrap';
-import copy from 'copy-to-clipboard';
+import * as dat from 'dat.gui';
+import WebMidi, { Output } from 'webmidi';
+import * as Mousetrap from 'mousetrap';
+import clipboard from 'clipboardy';
 
 /**
  * Assists in controlling properties
@@ -10,13 +10,21 @@ import copy from 'copy-to-clipboard';
  * @param    {object}  options  Options for the object
  * @return   {object}  The object
  */
-const Gui = function(options) {
+
+type Options = {
+  enabled: boolean;
+  midi: boolean;
+  colors: string[];
+  midiPerColor: number;
+}
+
+const Gui = function(options: Options) {
   //
   //   Public Vars
   //
   //////////////////////////////////////////////////////////////////////
 
-  let self = Object.assign({}, {
+  const self = Object.assign({}, {
     enabled: true,
     gui: new dat.GUI,
     midiPerColor: 4,
@@ -27,17 +35,202 @@ const Gui = function(options) {
       '#4888f5',
       '#aa82ff',
     ],
+
+    //
+    //   Public Methods
+    //
+
+    add: function(...params) {
+      // Add the controller
+      const controller = currentFolder.add.apply(currentFolder, params);
+
+      // Update controller colors
+      _updateControllerColors();
+
+      // Resync midi controller
+      self.syncMidi();
+
+      // Hand back the controller for chaining
+      return controller;
+    },
+
+    addColor: function(...params): dat.GUI {
+      // Add the controller
+      return currentFolder.addColor.apply(currentFolder, params);
+    },
+
+    setFolder: function(name: string) {
+      const folder = self.gui.addFolder(name);
+      folders.push(folder);
+      currentFolder = folder;
+      return folder;
+    },
+
+    getControllers: function(openOnly = false) {
+      const allFolders = _getAllFolders();
+      const targetFolders = openOnly
+        ? allFolders.filter(folder => !folder.closed)
+        : allFolders;
+
+      return targetFolders.reduce((acc, gui) => {
+        return acc.concat(gui.__controllers);
+      }, []);
+    },
+
+    removeFolder: function(folder: dat.GUI) {
+      const folderIdx = folders.findIndex(existingFolder => existingFolder.name === folder.name);
+      folders.splice(folderIdx, 1);
+      self.gui.removeFolder(folder);
+      currentFolder = self.gui;
+    },
+
+    connectMidiRange: function(start: number, end: number) {
+      for (let idx = start, length = end + 1; idx < length; idx++) {
+        midiConnectRange.push(idx);
+      }
+    },
+
+    addControl: function(note: number, callback:() => void) {
+      customControls[note] = callback;
+    },
+
+    destroy: function() {
+      self.gui.destroy();
+      if (Midi) {
+        Midi.inputs.forEach(input => {
+          input.removeListener('midimessage', 'all');
+        });
+        Midi.disable();
+      }
+    },
+
+    clear: function() {
+      self.gui.destroy();
+      self.gui = new dat.GUI();
+      currentFolder = self.gui;
+      customControls = {};
+    },
+
+    hide: function() {
+      hidden = true;
+      self.gui.hide();
+    },
+
+    show: function() {
+      hidden = false;
+      self.gui.show();
+    },
+
+    toggle: function() {
+      hidden = !hidden;
+      if (hidden) {
+        self.hide();
+      } else {
+        self.show();
+      }
+    },
+
+    update: function() {
+      self.getControllers().forEach(controller => {
+        controller.updateDisplay();
+      });
+    },
+
+    configureDevice: function(deviceName: string) {
+      // Limit to supported devices
+      const device = supportedMidiOutputDevices[deviceName];
+      if (!device || !device.configure) return console.warn(`No built-in configuration is available for "${deviceName}"`);
+
+      device.configure();
+    },
+
+    syncMidi: function() {
+      // If Midi is unavailable, return
+      if (!Midi) return;
+
+      midiConnectRange.forEach((midiIdx, idx) => {
+        // Get numeric GUI controller at corresponding position
+        const controller = self._getNumericControllerAtIndex(idx);
+
+        // New
+        midiReady.then(() => {
+          Midi.outputs.forEach(output => {
+            // Limit to supported devices
+            const device = supportedMidiOutputDevices[output.name];
+            if (!device) return;
+
+            if (controller) {
+              // Update the midi controller to the GUI controllers initial value
+              const midiValue = self._controllerValueToMidi(controller);
+              if (device.sync) device.sync(output, midiIdx, midiValue);
+            } else {
+              // If no corresponding GUI controller is found, zero out the value at position
+              if (device.clear) device.clear(output, midiIdx);
+            }
+          });
+        });
+      });
+    },
+
+
+    //
+    //   Private Methods
+    //
+
+    _mapRange: function(inMin:number, inMax:number, outMin:number, outMax:number, value:number) {
+      return (value - inMin) * (outMax - outMin) / (inMax - inMin) + outMin;
+    },
+
+    _snap: function(snapIncrement:number, value:number) {
+      return Math.round(value / snapIncrement) * snapIncrement;
+    },
+
+    _getNumericControllerAtIndex: function(idx:number, openOnly = false) {
+      // Get all number controllers and attempt to find the one matching the index of this control
+      const allControllers = self.getControllers(openOnly);
+      const controllerAtIdx = allControllers[idx];
+      return typeof controllerAtIdx !== 'undefined' &&
+      typeof controllerAtIdx.min !== 'undefined' &&
+      typeof controllerAtIdx.max !== 'undefined'
+        ? controllerAtIdx
+        : null;
+    },
+
+    _getAggregatedSettings: function(): object {
+      const allFolders = _getAllFolders();
+      return allFolders.reduce((acc, folder: dat.GUI) => {
+        acc[folder.name] = folder.__controllers.reduce((controllerAcc, controller: dat.GUIController) => {
+          controllerAcc[controller.property] = controller.getValue();
+          return controllerAcc;
+        }, {});
+        return acc;
+      }, {});
+    },
+
+    _controllerValueToMidi: function(controller: dat.GUIController & { __min: number, __max: number }) {
+      const value = controller.getValue();
+      const min = controller.__min;
+      const max = controller.__max;
+      const midiValue = self._mapRange(min, max, 1, 127, value);
+      return Math.round(midiValue);
+    },
   }, options);
 
+  type SupportedMidiOutputDevices = { [key: string]: {
+    sync?: (output: Output, midiIdx: number, midiValue: number) => void,
+    clear?: (output: Output, midiIdx: number) => void,
+    configure?: () => void,
+  }};
+
   // MIDI output devices that we will attempt to automatically sync with GUI
-  const supportedMidiOutputDevices = {
+  const supportedMidiOutputDevices: SupportedMidiOutputDevices = {
     'Midi Fighter Twister': {
-      sync: (output, midiIdx, midiValue) => {
+      sync: (output: Output, midiIdx: number, midiValue: number) => {
         output.sendControlChange(midiIdx, midiValue, 1);
         // Set RGB to max brightness
         output.sendControlChange(midiIdx, 47, 6);
       },
-      clear: (output, midiIdx) => {
+      clear: (output: Output, midiIdx: number) => {
         output.sendControlChange(midiIdx, 0, 1);
         // Set RGB to low brightness
         output.sendControlChange(midiIdx, 20, 6);
@@ -60,14 +253,14 @@ const Gui = function(options) {
   //
   //////////////////////////////////////////////////////////////////////
 
-  let folders = [];
+  const folders: dat.GUI[] = [];
   let currentFolder = self.gui;
-  let midiConnectRange = [];
-  let customControls = {};
+  const midiConnectRange: number[] = [];
+  let customControls: { [key: number]: () => void } = {};
   let debugMidi = false;
   let hidden = false;
-  let Midi = null;
-  let midiReady = null;
+  let Midi: typeof WebMidi = null;
+  let midiReady: Promise<typeof WebMidi | void>;
 
   //
   //   Private Methods
@@ -85,7 +278,7 @@ const Gui = function(options) {
   const _addMidi = function() {
     if (!self.midi) return;
 
-    midiReady = new Promise((res) => {
+    midiReady = new Promise<typeof WebMidi>((res) => {
       const webmidiEnabled = navigator.requestMIDIAccess;
 
       if (webmidiEnabled) {
@@ -152,18 +345,19 @@ const Gui = function(options) {
   };
 
   const _saveMarkup = () => {
-    let allSettings = self._getAggregatedSettings();
-    allSettings = JSON.stringify(allSettings, null, 1);
+    const allSettings: object = self._getAggregatedSettings();
+    const allSettingsJson: string = JSON.stringify(allSettings, null, 1);
 
     // Turn into a normal javascript object
-    allSettings.replace(/\\"/g, '\uFFFF');
-    allSettings = allSettings.replace(/"([^"]+)":/g, '$1:').replace(/\uFFFF/g, '\\"');
+    let allSettingsFormatted: string = allSettingsJson.replace(/\\"/g, '\uFFFF');
+    allSettingsFormatted = allSettingsFormatted.replace(/"([^"]+)":/g, '$1:').replace(/\uFFFF/g, '\\"');
 
     // Replace double quotes with single
-    allSettings.replace(/"/g, "'");
+    allSettingsFormatted.replace(/"/g, "'");
 
     // Add to textarea and open
-    document.querySelector('.gui-save__textarea').value = allSettings;
+    const textarea: HTMLTextAreaElement = document.querySelector('.gui-save__textarea');
+    textarea.value = allSettingsFormatted;
     _openSave();
     _copySaveToClipboard();
   };
@@ -174,7 +368,8 @@ const Gui = function(options) {
 
   const _copySaveToClipboard = () => {
     // Copy to clipboard
-    copy(document.querySelector('.gui-save__textarea').value);
+    const textarea: HTMLTextAreaElement = document.querySelector('.gui-save__textarea');
+    clipboard.write(textarea.value);
 
     // Show notification message
     const clipboardNotificationEl = document.querySelector('.gui-save__clipboard-notification');
@@ -189,7 +384,7 @@ const Gui = function(options) {
   };
 
   const _addStyles = function() {
-    let css = document.createElement('style');
+    const css = document.createElement('style');
     css.type = 'text/css';
 
     // Add save styles
@@ -296,8 +491,8 @@ const Gui = function(options) {
     });
   };
 
-  const _onMidiMessage = function(message) {
-    let [command, note, velocity] = message.data;
+  const _onMidiMessage = function(message: { data: Uint8Array }) {
+    const [command, note, velocity] = message.data;
     if (debugMidi) console.log(`command: ${command} / note: ${note} / velocity: ${velocity}`);
 
     // Check for inclusion in ranged controls
@@ -307,7 +502,7 @@ const Gui = function(options) {
     _customControlChange(note, velocity);
   };
 
-  const _controlRangeChange = function(note, velocity) {
+  const _controlRangeChange = function(note: number, velocity: number) {
     // Get the registered index of the activated control
     const controlIdx = midiConnectRange.indexOf(note);
 
@@ -330,7 +525,7 @@ const Gui = function(options) {
     controller.setValue(snappedValue);
   };
 
-  const _customControlChange = function(note, velocity) {
+  const _customControlChange = function(note: number, velocity: number) {
     if (customControls[note]) {
       customControls[note].call(self, velocity);
     }
@@ -355,183 +550,6 @@ const Gui = function(options) {
         const sliderEl = rowEl.querySelector('.slider-fg');
         sliderEl.style.backgroundColor = `${color}`;
       }
-    });
-  };
-
-  self._mapRange = function(inMin, inMax, outMin, outMax, value) {
-    return (value - inMin) * (outMax - outMin) / (inMax - inMin) + outMin;
-  };
-
-  self._snap = function(snapIncrement, value) {
-    return Math.round(value / snapIncrement) * snapIncrement;
-  };
-
-  self._getNumericControllerAtIndex = function(idx, openOnly = false) {
-    // Get all number controllers and attempt to find the one matching the index of this control
-    const allControllers = self.getControllers(openOnly);
-    const controllerAtIdx = allControllers[idx];
-    return typeof controllerAtIdx !== 'undefined' &&
-      typeof controllerAtIdx.min !== 'undefined' &&
-      typeof controllerAtIdx.max !== 'undefined'
-      ? controllerAtIdx
-      : null;
-  };
-
-  self._getAggregatedSettings = function() {
-    const allFolders = _getAllFolders();
-    return allFolders.reduce((acc, folder) => {
-      acc[folder.name] = folder.__controllers.reduce((controllerAcc, controller) => {
-        controllerAcc[controller.property] = controller.getValue();
-        return controllerAcc;
-      }, {});
-      return acc;
-    }, {});
-  };
-
-  self._controllerValueToMidi = function(controller) {
-    const value = controller.getValue();
-    const min = controller.__min;
-    const max = controller.__max;
-    const midiValue = self._mapRange(min, max, 1, 127, value);
-    return Math.round(midiValue);
-  };
-
-
-  //
-  //   Public Methods
-  //
-  //////////////////////////////////////////////////////////////////////
-
-
-  self.add = function(...params) {
-    // Add the controller
-    const controller = currentFolder.add.apply(currentFolder, params);
-
-    // Update controller colors
-    _updateControllerColors();
-
-    // Resync midi controller
-    self.syncMidi();
-
-    // Hand back the controller for chaining
-    return controller;
-  };
-
-  self.addColor = function(...params) {
-    // Add the controller
-    return currentFolder.addColor.apply(currentFolder, params);
-  };
-
-  self.setFolder = function(name) {
-    const folder = self.gui.addFolder(name);
-    folders.push(folder);
-    currentFolder = folder;
-    return folder;
-  };
-
-  self.getControllers = function(openOnly = false) {
-    const allFolders = _getAllFolders();
-    const targetFolders = openOnly
-      ? allFolders.filter(folder => !folder.closed)
-      : allFolders;
-
-    return targetFolders.reduce((acc, gui) => {
-      return acc.concat(gui.__controllers);
-    }, []);
-  };
-
-  self.removeFolder = function(folder) {
-    const folderIdx = folders.findIndex(existingFolder => existingFolder.name === folder.name);
-    folders.splice(folderIdx, 1);
-    self.gui.removeFolder(folder);
-    currentFolder = self.gui;
-  };
-
-  self.connectMidiRange = function(start, end) {
-    for (var idx = start, length = end + 1; idx < length; idx++) {
-      midiConnectRange.push(idx);
-    }
-  };
-
-  self.addControl = function(note, callback) {
-    customControls[note] = callback;
-  };
-
-  self.destroy = function() {
-    self.gui.destroy();
-    if (Midi) {
-      Midi.inputs.forEach(input => {
-        input.removeListener('midimessage', 'all');
-      });
-      Midi.disable();
-    }
-  };
-
-  self.clear = function() {
-    self.gui.destroy();
-    self.gui = new dat.GUI();
-    currentFolder = self.gui;
-    customControls = {};
-  };
-
-  self.hide = function() {
-    hidden = true;
-    self.gui.hide();
-  };
-
-  self.show = function() {
-    hidden = false;
-    self.gui.show();
-  };
-
-  self.toggle = function() {
-    hidden = !hidden;
-    if (hidden) {
-      self.hide();
-    } else {
-      self.show();
-    }
-  };
-
-  self.update = function() {
-    self.getControllers().forEach(controller => {
-      controller.updateDisplay();
-    });
-  };
-
-  self.configureDevice = function(deviceName) {
-    // Limit to supported devices
-    const device = supportedMidiOutputDevices[deviceName];
-    if (!device || !device.configure) return console.warn(`No built-in configuration is available for "${deviceName}"`);
-
-    device.configure();
-  };
-
-  self.syncMidi = function() {
-    // If Midi is unavailable, return
-    if (!Midi) return;
-
-    midiConnectRange.forEach((midiIdx, idx) => {
-      // Get numeric GUI controller at corresponding position
-      const controller = self._getNumericControllerAtIndex(idx);
-
-      // New
-      midiReady.then(() => {
-        Midi.outputs.forEach(output => {
-          // Limit to supported devices
-          const device = supportedMidiOutputDevices[output.name];
-          if (!device) return;
-
-          if (controller) {
-            // Update the midi controller to the GUI controllers initial value
-            const midiValue = self._controllerValueToMidi(controller);
-            if (device.sync) device.sync(output, midiIdx, midiValue);
-          } else {
-            // If no corresponding GUI controller is found, zero out the value at position
-            if (device.clear) device.clear(output, midiIdx);
-          }
-        });
-      });
     });
   };
 

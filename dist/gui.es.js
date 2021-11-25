@@ -11,17 +11,17 @@ function ___$insertStyle(css2) {
   document.head.appendChild(style);
   return css2;
 }
-function colorToString(color2, forceCSSHex) {
-  var colorFormat = color2.__state.conversionName.toString();
-  var r = Math.round(color2.r);
-  var g = Math.round(color2.g);
-  var b = Math.round(color2.b);
-  var a = color2.a;
-  var h = Math.round(color2.h);
-  var s = color2.s.toFixed(1);
-  var v = color2.v.toFixed(1);
+function colorToString(color, forceCSSHex) {
+  var colorFormat = color.__state.conversionName.toString();
+  var r = Math.round(color.r);
+  var g = Math.round(color.g);
+  var b = Math.round(color.b);
+  var a = color.a;
+  var h = Math.round(color.h);
+  var s = color.s.toFixed(1);
+  var v = color.v.toFixed(1);
   if (forceCSSHex || colorFormat === "THREE_CHAR_HEX" || colorFormat === "SIX_CHAR_HEX") {
-    var str = color2.hex.toString(16);
+    var str = color.hex.toString(16);
     while (str.length < 6) {
       str = "0" + str;
     }
@@ -31,7 +31,7 @@ function colorToString(color2, forceCSSHex) {
   } else if (colorFormat === "CSS_RGBA") {
     return "rgba(" + r + "," + g + "," + b + "," + a + ")";
   } else if (colorFormat === "HEX") {
-    return "0x" + color2.hex.toString(16);
+    return "0x" + color.hex.toString(16);
   } else if (colorFormat === "RGB_ARRAY") {
     return "[" + r + "," + g + "," + b + "]";
   } else if (colorFormat === "RGBA_ARRAY") {
@@ -241,8 +241,8 @@ var INTERPRETATIONS = [
             conversionName: "HEX"
           };
         },
-        write: function write(color2) {
-          return color2.hex;
+        write: function write(color) {
+          return color.hex;
         }
       }
     }
@@ -262,8 +262,8 @@ var INTERPRETATIONS = [
             b: original[2]
           };
         },
-        write: function write2(color2) {
-          return [color2.r, color2.g, color2.b];
+        write: function write2(color) {
+          return [color.r, color.g, color.b];
         }
       },
       RGBA_ARRAY: {
@@ -278,8 +278,8 @@ var INTERPRETATIONS = [
             a: original[3]
           };
         },
-        write: function write3(color2) {
-          return [color2.r, color2.g, color2.b, color2.a];
+        write: function write3(color) {
+          return [color.r, color.g, color.b, color.a];
         }
       }
     }
@@ -300,12 +300,12 @@ var INTERPRETATIONS = [
           }
           return false;
         },
-        write: function write4(color2) {
+        write: function write4(color) {
           return {
-            r: color2.r,
-            g: color2.g,
-            b: color2.b,
-            a: color2.a
+            r: color.r,
+            g: color.g,
+            b: color.b,
+            a: color.a
           };
         }
       },
@@ -321,11 +321,11 @@ var INTERPRETATIONS = [
           }
           return false;
         },
-        write: function write5(color2) {
+        write: function write5(color) {
           return {
-            r: color2.r,
-            g: color2.g,
-            b: color2.b
+            r: color.r,
+            g: color.g,
+            b: color.b
           };
         }
       },
@@ -342,12 +342,12 @@ var INTERPRETATIONS = [
           }
           return false;
         },
-        write: function write6(color2) {
+        write: function write6(color) {
           return {
-            h: color2.h,
-            s: color2.s,
-            v: color2.v,
-            a: color2.a
+            h: color.h,
+            s: color.s,
+            v: color.v,
+            a: color.a
           };
         }
       },
@@ -363,11 +363,11 @@ var INTERPRETATIONS = [
           }
           return false;
         },
-        write: function write7(color2) {
+        write: function write7(color) {
           return {
-            h: color2.h,
-            s: color2.s,
-            v: color2.v
+            h: color.h,
+            s: color.s,
+            v: color.v
           };
         }
       }
@@ -589,25 +589,25 @@ function defineHSVComponent(target, component) {
     }
   });
 }
-Color.recalculateRGB = function(color2, component, componentHexIndex) {
-  if (color2.__state.space === "HEX") {
-    color2.__state[component] = ColorMath.component_from_hex(color2.__state.hex, componentHexIndex);
-  } else if (color2.__state.space === "HSV") {
-    Common.extend(color2.__state, ColorMath.hsv_to_rgb(color2.__state.h, color2.__state.s, color2.__state.v));
+Color.recalculateRGB = function(color, component, componentHexIndex) {
+  if (color.__state.space === "HEX") {
+    color.__state[component] = ColorMath.component_from_hex(color.__state.hex, componentHexIndex);
+  } else if (color.__state.space === "HSV") {
+    Common.extend(color.__state, ColorMath.hsv_to_rgb(color.__state.h, color.__state.s, color.__state.v));
   } else {
     throw new Error("Corrupted color state");
   }
 };
-Color.recalculateHSV = function(color2) {
-  var result2 = ColorMath.rgb_to_hsv(color2.r, color2.g, color2.b);
-  Common.extend(color2.__state, {
+Color.recalculateHSV = function(color) {
+  var result2 = ColorMath.rgb_to_hsv(color.r, color.g, color.b);
+  Common.extend(color.__state, {
     s: result2.s,
     v: result2.v
   });
   if (!Common.isNaN(result2.h)) {
-    color2.__state.h = result2.h;
-  } else if (Common.isUndefined(color2.__state.h)) {
-    color2.__state.h = 0;
+    color.__state.h = result2.h;
+  } else if (Common.isUndefined(color.__state.h)) {
+    color.__state.h = 0;
   }
 };
 Color.COMPONENTS = ["r", "g", "b", "h", "s", "v", "hex", "a"];
@@ -813,9 +813,9 @@ var dom = {
         elem.removeAttribute("class");
       } else {
         var classes = elem.className.split(/ +/);
-        var index2 = classes.indexOf(className);
-        if (index2 !== -1) {
-          classes.splice(index2, 1);
+        var index = classes.indexOf(className);
+        if (index !== -1) {
+          classes.splice(index, 1);
           elem.className = classes.join(" ");
         }
       }
@@ -1854,8 +1854,8 @@ var GUI = function GUI2(pars) {
 };
 GUI.toggleHide = function() {
   hide = !hide;
-  Common.each(hideableGuis, function(gui2) {
-    gui2.domElement.style.display = hide ? "none" : "";
+  Common.each(hideableGuis, function(gui) {
+    gui.domElement.style.display = hide ? "none" : "";
   });
 };
 GUI.CLASS_AUTO_PLACE = "a";
@@ -1920,11 +1920,11 @@ Common.extend(GUI.prototype, {
       newGuiParams.closed = this.load.folders[name].closed;
       newGuiParams.load = this.load.folders[name];
     }
-    var gui2 = new GUI(newGuiParams);
-    this.__folders[name] = gui2;
-    var li = addRow(this, gui2.domElement);
+    var gui = new GUI(newGuiParams);
+    this.__folders[name] = gui;
+    var li = addRow(this, gui.domElement);
     dom.addClass(li, "folder");
-    return gui2;
+    return gui;
   },
   removeFolder: function removeFolder(folder) {
     this.__ul.removeChild(folder.domElement.parentElement);
@@ -2005,11 +2005,11 @@ Common.extend(GUI.prototype, {
     }
   },
   getRoot: function getRoot() {
-    var gui2 = this;
-    while (gui2.parent) {
-      gui2 = gui2.parent;
+    var gui = this;
+    while (gui.parent) {
+      gui = gui.parent;
     }
-    return gui2;
+    return gui;
   },
   getSaveObject: function getSaveObject() {
     var toReturn2 = this.load;
@@ -2045,12 +2045,12 @@ Common.extend(GUI.prototype, {
     addPresetOption(this, presetName, true);
     this.saveToLocalStorageIfPossible();
   },
-  revert: function revert(gui2) {
+  revert: function revert(gui) {
     Common.each(this.__controllers, function(controller) {
       if (!this.getRoot().load.remembered) {
         controller.setValue(controller.initialValue);
       } else {
-        recallSavedValue(gui2 || this.getRoot(), controller);
+        recallSavedValue(gui || this.getRoot(), controller);
       }
       if (controller.__onFinishChange) {
         controller.__onFinishChange.call(controller, controller.getValue());
@@ -2059,7 +2059,7 @@ Common.extend(GUI.prototype, {
     Common.each(this.__folders, function(folder) {
       folder.revert(folder);
     });
-    if (!gui2) {
+    if (!gui) {
       markPresetModified(this.getRoot(), false);
     }
   },
@@ -2079,42 +2079,42 @@ Common.extend(GUI.prototype, {
     });
   }
 });
-function addRow(gui2, newDom, liBefore) {
+function addRow(gui, newDom, liBefore) {
   var li = document.createElement("li");
   if (newDom) {
     li.appendChild(newDom);
   }
   if (liBefore) {
-    gui2.__ul.insertBefore(li, liBefore);
+    gui.__ul.insertBefore(li, liBefore);
   } else {
-    gui2.__ul.appendChild(li);
+    gui.__ul.appendChild(li);
   }
-  gui2.onResize();
+  gui.onResize();
   return li;
 }
-function removeListeners(gui2) {
-  dom.unbind(window, "resize", gui2.__resizeHandler);
-  if (gui2.saveToLocalStorageIfPossible) {
-    dom.unbind(window, "unload", gui2.saveToLocalStorageIfPossible);
+function removeListeners(gui) {
+  dom.unbind(window, "resize", gui.__resizeHandler);
+  if (gui.saveToLocalStorageIfPossible) {
+    dom.unbind(window, "unload", gui.saveToLocalStorageIfPossible);
   }
 }
-function markPresetModified(gui2, modified) {
-  var opt = gui2.__preset_select[gui2.__preset_select.selectedIndex];
+function markPresetModified(gui, modified) {
+  var opt = gui.__preset_select[gui.__preset_select.selectedIndex];
   if (modified) {
     opt.innerHTML = opt.value + "*";
   } else {
     opt.innerHTML = opt.value;
   }
 }
-function augmentController(gui2, li, controller) {
+function augmentController(gui, li, controller) {
   controller.__li = li;
-  controller.__gui = gui2;
+  controller.__gui = gui;
   Common.extend(controller, {
     options: function options(_options) {
       if (arguments.length > 1) {
         var nextSibling = controller.__li.nextElementSibling;
         controller.remove();
-        return _add(gui2, controller.object, controller.property, {
+        return _add(gui, controller.object, controller.property, {
           before: nextSibling,
           factoryArgs: [Common.toArray(arguments)]
         });
@@ -2122,7 +2122,7 @@ function augmentController(gui2, li, controller) {
       if (Common.isArray(_options) || Common.isObject(_options)) {
         var _nextSibling = controller.__li.nextElementSibling;
         controller.remove();
-        return _add(gui2, controller.object, controller.property, {
+        return _add(gui, controller.object, controller.property, {
           before: _nextSibling,
           factoryArgs: [_options]
         });
@@ -2160,7 +2160,7 @@ function augmentController(gui2, li, controller) {
         var oldName = controller.__li.firstElementChild.firstElementChild.innerHTML;
         var wasListening = controller.__gui.__listening.indexOf(controller) > -1;
         controller.remove();
-        var newController = _add(gui2, controller.object, controller.property, {
+        var newController = _add(gui, controller.object, controller.property, {
           before: controller.__li.nextElementSibling,
           factoryArgs: [controller.__min, controller.__max, controller.__step]
         });
@@ -2199,14 +2199,14 @@ function augmentController(gui2, li, controller) {
     controller.updateDisplay();
   }
   controller.setValue = Common.compose(function(val) {
-    if (gui2.getRoot().__preset_select && controller.isModified()) {
-      markPresetModified(gui2.getRoot(), true);
+    if (gui.getRoot().__preset_select && controller.isModified()) {
+      markPresetModified(gui.getRoot(), true);
     }
     return val;
   }, controller.setValue);
 }
-function recallSavedValue(gui2, controller) {
-  var root = gui2.getRoot();
+function recallSavedValue(gui, controller) {
+  var root = gui.getRoot();
   var matchedIndex = root.__rememberedObjects.indexOf(controller.object);
   if (matchedIndex !== -1) {
     var controllerMap = root.__rememberedObjectIndecesToControllers[matchedIndex];
@@ -2218,8 +2218,8 @@ function recallSavedValue(gui2, controller) {
     if (root.load && root.load.remembered) {
       var presetMap = root.load.remembered;
       var preset = void 0;
-      if (presetMap[gui2.preset]) {
-        preset = presetMap[gui2.preset];
+      if (presetMap[gui.preset]) {
+        preset = presetMap[gui.preset];
       } else if (presetMap[DEFAULT_DEFAULT_PRESET_NAME]) {
         preset = presetMap[DEFAULT_DEFAULT_PRESET_NAME];
       } else {
@@ -2233,7 +2233,7 @@ function recallSavedValue(gui2, controller) {
     }
   }
 }
-function _add(gui2, object, property, params) {
+function _add(gui, object, property, params) {
   if (object[property] === void 0) {
     throw new Error('Object "' + object + '" has no property "' + property + '"');
   }
@@ -2242,12 +2242,12 @@ function _add(gui2, object, property, params) {
     controller = new ColorController(object, property);
   } else {
     var factoryArgs = [object, property].concat(params.factoryArgs);
-    controller = ControllerFactory.apply(gui2, factoryArgs);
+    controller = ControllerFactory.apply(gui, factoryArgs);
   }
   if (params.before instanceof Controller) {
     params.before = params.before.__li;
   }
-  recallSavedValue(gui2, controller);
+  recallSavedValue(gui, controller);
   dom.addClass(controller.domElement, "c");
   var name = document.createElement("span");
   dom.addClass(name, "property-name");
@@ -2255,36 +2255,36 @@ function _add(gui2, object, property, params) {
   var container = document.createElement("div");
   container.appendChild(name);
   container.appendChild(controller.domElement);
-  var li = addRow(gui2, container, params.before);
+  var li = addRow(gui, container, params.before);
   dom.addClass(li, GUI.CLASS_CONTROLLER_ROW);
   if (controller instanceof ColorController) {
     dom.addClass(li, "color");
   } else {
     dom.addClass(li, _typeof(controller.getValue()));
   }
-  augmentController(gui2, li, controller);
-  gui2.__controllers.push(controller);
+  augmentController(gui, li, controller);
+  gui.__controllers.push(controller);
   return controller;
 }
-function getLocalStorageHash(gui2, key) {
+function getLocalStorageHash(gui, key) {
   return document.location.href + "." + key;
 }
-function addPresetOption(gui2, name, setSelected) {
+function addPresetOption(gui, name, setSelected) {
   var opt = document.createElement("option");
   opt.innerHTML = name;
   opt.value = name;
-  gui2.__preset_select.appendChild(opt);
+  gui.__preset_select.appendChild(opt);
   if (setSelected) {
-    gui2.__preset_select.selectedIndex = gui2.__preset_select.length - 1;
+    gui.__preset_select.selectedIndex = gui.__preset_select.length - 1;
   }
 }
-function showHideExplain(gui2, explain) {
-  explain.style.display = gui2.useLocalStorage ? "block" : "none";
+function showHideExplain(gui, explain) {
+  explain.style.display = gui.useLocalStorage ? "block" : "none";
 }
-function addSaveMenu(gui2) {
-  var div = gui2.__save_row = document.createElement("li");
-  dom.addClass(gui2.domElement, "has-save");
-  gui2.__ul.insertBefore(div, gui2.__ul.firstChild);
+function addSaveMenu(gui) {
+  var div = gui.__save_row = document.createElement("li");
+  dom.addClass(gui.domElement, "has-save");
+  gui.__ul.insertBefore(div, gui.__ul.firstChild);
   dom.addClass(div, "save-row");
   var gears = document.createElement("span");
   gears.innerHTML = "&nbsp;";
@@ -2301,19 +2301,19 @@ function addSaveMenu(gui2) {
   button3.innerHTML = "Revert";
   dom.addClass(button3, "button");
   dom.addClass(button3, "revert");
-  var select = gui2.__preset_select = document.createElement("select");
-  if (gui2.load && gui2.load.remembered) {
-    Common.each(gui2.load.remembered, function(value, key) {
-      addPresetOption(gui2, key, key === gui2.preset);
+  var select = gui.__preset_select = document.createElement("select");
+  if (gui.load && gui.load.remembered) {
+    Common.each(gui.load.remembered, function(value, key) {
+      addPresetOption(gui, key, key === gui.preset);
     });
   } else {
-    addPresetOption(gui2, DEFAULT_DEFAULT_PRESET_NAME, false);
+    addPresetOption(gui, DEFAULT_DEFAULT_PRESET_NAME, false);
   }
   dom.bind(select, "change", function() {
-    for (var index2 = 0; index2 < gui2.__preset_select.length; index2++) {
-      gui2.__preset_select[index2].innerHTML = gui2.__preset_select[index2].value;
+    for (var index = 0; index < gui.__preset_select.length; index++) {
+      gui.__preset_select[index].innerHTML = gui.__preset_select[index].value;
     }
-    gui2.preset = this.value;
+    gui.preset = this.value;
   });
   div.appendChild(select);
   div.appendChild(gears);
@@ -2325,13 +2325,13 @@ function addSaveMenu(gui2) {
     var localStorageCheckBox = document.getElementById("dg-local-storage");
     var saveLocally = document.getElementById("dg-save-locally");
     saveLocally.style.display = "block";
-    if (localStorage.getItem(getLocalStorageHash(gui2, "isLocal")) === "true") {
+    if (localStorage.getItem(getLocalStorageHash(gui, "isLocal")) === "true") {
       localStorageCheckBox.setAttribute("checked", "checked");
     }
-    showHideExplain(gui2, explain);
+    showHideExplain(gui, explain);
     dom.bind(localStorageCheckBox, "change", function() {
-      gui2.useLocalStorage = !gui2.useLocalStorage;
-      showHideExplain(gui2, explain);
+      gui.useLocalStorage = !gui.useLocalStorage;
+      showHideExplain(gui, explain);
     });
   }
   var newConstructorTextArea = document.getElementById("dg-new-constructor");
@@ -2341,28 +2341,28 @@ function addSaveMenu(gui2) {
     }
   });
   dom.bind(gears, "click", function() {
-    newConstructorTextArea.innerHTML = JSON.stringify(gui2.getSaveObject(), void 0, 2);
+    newConstructorTextArea.innerHTML = JSON.stringify(gui.getSaveObject(), void 0, 2);
     SAVE_DIALOGUE.show();
     newConstructorTextArea.focus();
     newConstructorTextArea.select();
   });
   dom.bind(button, "click", function() {
-    gui2.save();
+    gui.save();
   });
   dom.bind(button2, "click", function() {
     var presetName = prompt("Enter a new preset name.");
     if (presetName) {
-      gui2.saveAs(presetName);
+      gui.saveAs(presetName);
     }
   });
   dom.bind(button3, "click", function() {
-    gui2.revert();
+    gui.revert();
   });
 }
-function addResizeHandle(gui2) {
+function addResizeHandle(gui) {
   var pmouseX = void 0;
-  gui2.__resize_handle = document.createElement("div");
-  Common.extend(gui2.__resize_handle.style, {
+  gui.__resize_handle = document.createElement("div");
+  Common.extend(gui.__resize_handle.style, {
     width: "6px",
     marginLeft: "-3px",
     height: "200px",
@@ -2371,53 +2371,53 @@ function addResizeHandle(gui2) {
   });
   function drag(e) {
     e.preventDefault();
-    gui2.width += pmouseX - e.clientX;
-    gui2.onResize();
+    gui.width += pmouseX - e.clientX;
+    gui.onResize();
     pmouseX = e.clientX;
     return false;
   }
   function dragStop() {
-    dom.removeClass(gui2.__closeButton, GUI.CLASS_DRAG);
+    dom.removeClass(gui.__closeButton, GUI.CLASS_DRAG);
     dom.unbind(window, "mousemove", drag);
     dom.unbind(window, "mouseup", dragStop);
   }
   function dragStart(e) {
     e.preventDefault();
     pmouseX = e.clientX;
-    dom.addClass(gui2.__closeButton, GUI.CLASS_DRAG);
+    dom.addClass(gui.__closeButton, GUI.CLASS_DRAG);
     dom.bind(window, "mousemove", drag);
     dom.bind(window, "mouseup", dragStop);
     return false;
   }
-  dom.bind(gui2.__resize_handle, "mousedown", dragStart);
-  dom.bind(gui2.__closeButton, "mousedown", dragStart);
-  gui2.domElement.insertBefore(gui2.__resize_handle, gui2.domElement.firstElementChild);
+  dom.bind(gui.__resize_handle, "mousedown", dragStart);
+  dom.bind(gui.__closeButton, "mousedown", dragStart);
+  gui.domElement.insertBefore(gui.__resize_handle, gui.domElement.firstElementChild);
 }
-function setWidth(gui2, w) {
-  gui2.domElement.style.width = w + "px";
-  if (gui2.__save_row && gui2.autoPlace) {
-    gui2.__save_row.style.width = w + "px";
+function setWidth(gui, w) {
+  gui.domElement.style.width = w + "px";
+  if (gui.__save_row && gui.autoPlace) {
+    gui.__save_row.style.width = w + "px";
   }
-  if (gui2.__closeButton) {
-    gui2.__closeButton.style.width = w + "px";
+  if (gui.__closeButton) {
+    gui.__closeButton.style.width = w + "px";
   }
 }
-function getCurrentPreset(gui2, useInitialValues) {
+function getCurrentPreset(gui, useInitialValues) {
   var toReturn2 = {};
-  Common.each(gui2.__rememberedObjects, function(val, index2) {
+  Common.each(gui.__rememberedObjects, function(val, index) {
     var savedValues = {};
-    var controllerMap = gui2.__rememberedObjectIndecesToControllers[index2];
+    var controllerMap = gui.__rememberedObjectIndecesToControllers[index];
     Common.each(controllerMap, function(controller, property) {
       savedValues[property] = useInitialValues ? controller.initialValue : controller.getValue();
     });
-    toReturn2[index2] = savedValues;
+    toReturn2[index] = savedValues;
   });
   return toReturn2;
 }
-function setPresetSelectIndex(gui2) {
-  for (var index2 = 0; index2 < gui2.__preset_select.length; index2++) {
-    if (gui2.__preset_select[index2].value === gui2.preset) {
-      gui2.__preset_select.selectedIndex = index2;
+function setPresetSelectIndex(gui) {
+  for (var index = 0; index < gui.__preset_select.length; index++) {
+    if (gui.__preset_select[index].value === gui.preset) {
+      gui.__preset_select.selectedIndex = index;
     }
   }
 }
@@ -2431,32 +2431,7 @@ function updateDisplays(controllerArray) {
     c.updateDisplay();
   });
 }
-var color = {
-  Color,
-  math: ColorMath,
-  interpret
-};
-var controllers = {
-  Controller,
-  BooleanController,
-  OptionController,
-  StringController,
-  NumberController,
-  NumberControllerBox,
-  NumberControllerSlider,
-  FunctionController,
-  ColorController
-};
-var dom$1 = { dom };
-var gui = { GUI };
 var GUI$1 = GUI;
-var index = {
-  color,
-  controllers,
-  dom: dom$1,
-  gui,
-  GUI: GUI$1
-};
 var commonjsGlobal = typeof globalThis !== "undefined" ? globalThis : typeof window !== "undefined" ? window : typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : {};
 var webmidi_min = { exports: {} };
 (function(module) {
@@ -2540,7 +2515,9 @@ var webmidi_min = { exports: {} };
     }, WebMidi2.prototype.disable = function() {
       if (!this.supported)
         throw new Error("The Web MIDI API is not supported by your browser.");
-      this.interface && (this.interface.onstatechange = void 0), this.interface = void 0, this._inputs = [], this._outputs = [], this._nrpnEventsEnabled = true, this._resetInterfaceUserHandlers();
+      this.enabled && (this.removeListener(), this.inputs.forEach(function(input) {
+        input.removeListener();
+      })), this.interface && (this.interface.onstatechange = void 0), this.interface = void 0, this._inputs = [], this._outputs = [], this._nrpnEventsEnabled = true, this._resetInterfaceUserHandlers();
     }, WebMidi2.prototype.addListener = function(type, listener) {
       if (!this.enabled)
         throw new Error("WebMidi must be enabled before adding event listeners.");
@@ -2754,9 +2731,9 @@ var webmidi_min = { exports: {} };
       return this;
     }, Input.prototype._initializeUserHandlers = function() {
       for (var prop1 in wm.MIDI_CHANNEL_MESSAGES)
-        wm.MIDI_CHANNEL_MESSAGES.hasOwnProperty(prop1) && (this._userHandlers.channel[prop1] = {});
+        Object.prototype.hasOwnProperty.call(wm.MIDI_CHANNEL_MESSAGES, prop1) && (this._userHandlers.channel[prop1] = {});
       for (var prop2 in wm.MIDI_SYSTEM_MESSAGES)
-        wm.MIDI_SYSTEM_MESSAGES.hasOwnProperty(prop2) && (this._userHandlers.system[prop2] = []);
+        Object.prototype.hasOwnProperty.call(wm.MIDI_SYSTEM_MESSAGES, prop2) && (this._userHandlers.system[prop2] = []);
     }, Input.prototype._onMidiMessage = function(e) {
       if (0 < this._userHandlers.system.midimessage.length) {
         var event = { target: this, data: e.data, timestamp: e.timeStamp, type: "midimessage" };
@@ -2820,13 +2797,13 @@ var webmidi_min = { exports: {} };
       if (!(0 <= (number = Math.floor(number)) && number <= 119))
         throw new RangeError("The control change number must be between 0 and 119.");
       for (var cc in wm.MIDI_CONTROL_CHANGE_MESSAGES)
-        if (wm.MIDI_CONTROL_CHANGE_MESSAGES.hasOwnProperty(cc) && number === wm.MIDI_CONTROL_CHANGE_MESSAGES[cc])
+        if (Object.prototype.hasOwnProperty.call(wm.MIDI_CONTROL_CHANGE_MESSAGES, cc) && number === wm.MIDI_CONTROL_CHANGE_MESSAGES[cc])
           return cc;
     }, Input.prototype.getChannelModeByNumber = function(number) {
       if (!(120 <= (number = Math.floor(number)) && status <= 127))
         throw new RangeError("The control change number must be between 120 and 127.");
       for (var cm in wm.MIDI_CHANNEL_MODE_MESSAGES)
-        if (wm.MIDI_CHANNEL_MODE_MESSAGES.hasOwnProperty(cm) && number === wm.MIDI_CHANNEL_MODE_MESSAGES[cm])
+        if (Object.prototype.hasOwnProperty.call(wm.MIDI_CHANNEL_MODE_MESSAGES, cm) && number === wm.MIDI_CHANNEL_MODE_MESSAGES[cm])
           return cm;
     }, Input.prototype._parseSystemEvent = function(e) {
       var command = e.data[0], event = { target: this, data: e.data, timestamp: e.timeStamp };
@@ -3283,11 +3260,11 @@ var mousetrap = { exports: {} };
       }
       return _belongsTo(element.parentNode, ancestor);
     }
-    function Mousetrap2(targetElement) {
+    function Mousetrap(targetElement) {
       var self2 = this;
       targetElement = targetElement || document2;
-      if (!(self2 instanceof Mousetrap2)) {
-        return new Mousetrap2(targetElement);
+      if (!(self2 instanceof Mousetrap)) {
+        return new Mousetrap(targetElement);
       }
       self2.target = targetElement;
       self2._callbacks = {};
@@ -3451,31 +3428,31 @@ var mousetrap = { exports: {} };
       _addEvent(targetElement, "keydown", _handleKeyEvent);
       _addEvent(targetElement, "keyup", _handleKeyEvent);
     }
-    Mousetrap2.prototype.bind = function(keys, callback, action) {
+    Mousetrap.prototype.bind = function(keys, callback, action) {
       var self2 = this;
       keys = keys instanceof Array ? keys : [keys];
       self2._bindMultiple.call(self2, keys, callback, action);
       return self2;
     };
-    Mousetrap2.prototype.unbind = function(keys, action) {
+    Mousetrap.prototype.unbind = function(keys, action) {
       var self2 = this;
       return self2.bind.call(self2, keys, function() {
       }, action);
     };
-    Mousetrap2.prototype.trigger = function(keys, action) {
+    Mousetrap.prototype.trigger = function(keys, action) {
       var self2 = this;
       if (self2._directMap[keys + ":" + action]) {
         self2._directMap[keys + ":" + action]({}, keys);
       }
       return self2;
     };
-    Mousetrap2.prototype.reset = function() {
+    Mousetrap.prototype.reset = function() {
       var self2 = this;
       self2._callbacks = {};
       self2._directMap = {};
       return self2;
     };
-    Mousetrap2.prototype.stopCallback = function(e, element) {
+    Mousetrap.prototype.stopCallback = function(e, element) {
       var self2 = this;
       if ((" " + element.className + " ").indexOf(" mousetrap ") > -1) {
         return false;
@@ -3491,11 +3468,11 @@ var mousetrap = { exports: {} };
       }
       return element.tagName == "INPUT" || element.tagName == "SELECT" || element.tagName == "TEXTAREA" || element.isContentEditable;
     };
-    Mousetrap2.prototype.handleKey = function() {
+    Mousetrap.prototype.handleKey = function() {
       var self2 = this;
       return self2._handleKey.apply(self2, arguments);
     };
-    Mousetrap2.addKeycodes = function(object) {
+    Mousetrap.addKeycodes = function(object) {
       for (var key in object) {
         if (object.hasOwnProperty(key)) {
           _MAP[key] = object[key];
@@ -3503,11 +3480,11 @@ var mousetrap = { exports: {} };
       }
       _REVERSE_MAP = null;
     };
-    Mousetrap2.init = function() {
-      var documentMousetrap = Mousetrap2(document2);
+    Mousetrap.init = function() {
+      var documentMousetrap = Mousetrap(document2);
       for (var method in documentMousetrap) {
         if (method.charAt(0) !== "_") {
-          Mousetrap2[method] = function(method2) {
+          Mousetrap[method] = function(method2) {
             return function() {
               return documentMousetrap[method2].apply(documentMousetrap, arguments);
             };
@@ -3515,143 +3492,33 @@ var mousetrap = { exports: {} };
         }
       }
     };
-    Mousetrap2.init();
-    window2.Mousetrap = Mousetrap2;
+    Mousetrap.init();
+    window2.Mousetrap = Mousetrap;
     if (module.exports) {
-      module.exports = Mousetrap2;
+      module.exports = Mousetrap;
     }
     if (typeof undefined$1 === "function" && undefined$1.amd) {
       undefined$1(function() {
-        return Mousetrap2;
+        return Mousetrap;
       });
     }
   })(typeof window !== "undefined" ? window : null, typeof window !== "undefined" ? document : null);
 })(mousetrap);
-var Mousetrap = mousetrap.exports;
-var toggleSelection = function() {
-  var selection = document.getSelection();
-  if (!selection.rangeCount) {
-    return function() {
-    };
-  }
-  var active = document.activeElement;
-  var ranges = [];
-  for (var i = 0; i < selection.rangeCount; i++) {
-    ranges.push(selection.getRangeAt(i));
-  }
-  switch (active.tagName.toUpperCase()) {
-    case "INPUT":
-    case "TEXTAREA":
-      active.blur();
-      break;
-    default:
-      active = null;
-      break;
-  }
-  selection.removeAllRanges();
-  return function() {
-    selection.type === "Caret" && selection.removeAllRanges();
-    if (!selection.rangeCount) {
-      ranges.forEach(function(range) {
-        selection.addRange(range);
-      });
-    }
-    active && active.focus();
-  };
+const clipboard = {};
+clipboard.write = async (text) => {
+  await navigator.clipboard.writeText(text);
 };
-var deselectCurrent = toggleSelection;
-var clipboardToIE11Formatting = {
-  "text/plain": "Text",
-  "text/html": "Url",
-  "default": "Text"
+clipboard.read = async () => navigator.clipboard.readText();
+clipboard.readSync = () => {
+  throw new Error("`.readSync()` is not supported in browsers!");
 };
-var defaultMessage = "Copy to clipboard: #{key}, Enter";
-function format(message) {
-  var copyKey = (/mac os x/i.test(navigator.userAgent) ? "\u2318" : "Ctrl") + "+C";
-  return message.replace(/#{\s*key\s*}/g, copyKey);
-}
-function copy(text, options) {
-  var debug, message, reselectPrevious, range, selection, mark, success = false;
-  if (!options) {
-    options = {};
-  }
-  debug = options.debug || false;
-  try {
-    reselectPrevious = deselectCurrent();
-    range = document.createRange();
-    selection = document.getSelection();
-    mark = document.createElement("span");
-    mark.textContent = text;
-    mark.style.all = "unset";
-    mark.style.position = "fixed";
-    mark.style.top = 0;
-    mark.style.clip = "rect(0, 0, 0, 0)";
-    mark.style.whiteSpace = "pre";
-    mark.style.webkitUserSelect = "text";
-    mark.style.MozUserSelect = "text";
-    mark.style.msUserSelect = "text";
-    mark.style.userSelect = "text";
-    mark.addEventListener("copy", function(e) {
-      e.stopPropagation();
-      if (options.format) {
-        e.preventDefault();
-        if (typeof e.clipboardData === "undefined") {
-          debug && console.warn("unable to use e.clipboardData");
-          debug && console.warn("trying IE specific stuff");
-          window.clipboardData.clearData();
-          var format2 = clipboardToIE11Formatting[options.format] || clipboardToIE11Formatting["default"];
-          window.clipboardData.setData(format2, text);
-        } else {
-          e.clipboardData.clearData();
-          e.clipboardData.setData(options.format, text);
-        }
-      }
-      if (options.onCopy) {
-        e.preventDefault();
-        options.onCopy(e.clipboardData);
-      }
-    });
-    document.body.appendChild(mark);
-    range.selectNodeContents(mark);
-    selection.addRange(range);
-    var successful = document.execCommand("copy");
-    if (!successful) {
-      throw new Error("copy command was unsuccessful");
-    }
-    success = true;
-  } catch (err) {
-    debug && console.error("unable to copy using execCommand: ", err);
-    debug && console.warn("trying IE specific stuff");
-    try {
-      window.clipboardData.setData(options.format || "text", text);
-      options.onCopy && options.onCopy(window.clipboardData);
-      success = true;
-    } catch (err2) {
-      debug && console.error("unable to copy using clipboardData: ", err2);
-      debug && console.error("falling back to prompt");
-      message = format("message" in options ? options.message : defaultMessage);
-      window.prompt(message, text);
-    }
-  } finally {
-    if (selection) {
-      if (typeof selection.removeRange == "function") {
-        selection.removeRange(range);
-      } else {
-        selection.removeAllRanges();
-      }
-    }
-    if (mark) {
-      document.body.removeChild(mark);
-    }
-    reselectPrevious();
-  }
-  return success;
-}
-var copyToClipboard = copy;
+clipboard.writeSync = () => {
+  throw new Error("`.writeSync()` is not supported in browsers!");
+};
 const Gui = function(options) {
-  let self2 = Object.assign({}, {
+  const self2 = Object.assign({}, {
     enabled: true,
-    gui: new index.GUI(),
+    gui: new GUI$1(),
     midiPerColor: 4,
     midi: true,
     colors: [
@@ -3659,7 +3526,135 @@ const Gui = function(options) {
       "#2ed9c3",
       "#4888f5",
       "#aa82ff"
-    ]
+    ],
+    add: function(...params) {
+      const controller = currentFolder.add.apply(currentFolder, params);
+      _updateControllerColors();
+      self2.syncMidi();
+      return controller;
+    },
+    addColor: function(...params) {
+      return currentFolder.addColor.apply(currentFolder, params);
+    },
+    setFolder: function(name) {
+      const folder = self2.gui.addFolder(name);
+      folders.push(folder);
+      currentFolder = folder;
+      return folder;
+    },
+    getControllers: function(openOnly = false) {
+      const allFolders = _getAllFolders();
+      const targetFolders = openOnly ? allFolders.filter((folder) => !folder.closed) : allFolders;
+      return targetFolders.reduce((acc, gui) => {
+        return acc.concat(gui.__controllers);
+      }, []);
+    },
+    removeFolder: function(folder) {
+      const folderIdx = folders.findIndex((existingFolder) => existingFolder.name === folder.name);
+      folders.splice(folderIdx, 1);
+      self2.gui.removeFolder(folder);
+      currentFolder = self2.gui;
+    },
+    connectMidiRange: function(start, end) {
+      for (let idx = start, length = end + 1; idx < length; idx++) {
+        midiConnectRange.push(idx);
+      }
+    },
+    addControl: function(note, callback) {
+      customControls[note] = callback;
+    },
+    destroy: function() {
+      self2.gui.destroy();
+      if (Midi) {
+        Midi.inputs.forEach((input) => {
+          input.removeListener("midimessage", "all");
+        });
+        Midi.disable();
+      }
+    },
+    clear: function() {
+      self2.gui.destroy();
+      self2.gui = new GUI$1();
+      currentFolder = self2.gui;
+      customControls = {};
+    },
+    hide: function() {
+      hidden = true;
+      self2.gui.hide();
+    },
+    show: function() {
+      hidden = false;
+      self2.gui.show();
+    },
+    toggle: function() {
+      hidden = !hidden;
+      if (hidden) {
+        self2.hide();
+      } else {
+        self2.show();
+      }
+    },
+    update: function() {
+      self2.getControllers().forEach((controller) => {
+        controller.updateDisplay();
+      });
+    },
+    configureDevice: function(deviceName) {
+      const device = supportedMidiOutputDevices[deviceName];
+      if (!device || !device.configure)
+        return console.warn(`No built-in configuration is available for "${deviceName}"`);
+      device.configure();
+    },
+    syncMidi: function() {
+      if (!Midi)
+        return;
+      midiConnectRange.forEach((midiIdx, idx) => {
+        const controller = self2._getNumericControllerAtIndex(idx);
+        midiReady.then(() => {
+          Midi.outputs.forEach((output) => {
+            const device = supportedMidiOutputDevices[output.name];
+            if (!device)
+              return;
+            if (controller) {
+              const midiValue = self2._controllerValueToMidi(controller);
+              if (device.sync)
+                device.sync(output, midiIdx, midiValue);
+            } else {
+              if (device.clear)
+                device.clear(output, midiIdx);
+            }
+          });
+        });
+      });
+    },
+    _mapRange: function(inMin, inMax, outMin, outMax, value) {
+      return (value - inMin) * (outMax - outMin) / (inMax - inMin) + outMin;
+    },
+    _snap: function(snapIncrement, value) {
+      return Math.round(value / snapIncrement) * snapIncrement;
+    },
+    _getNumericControllerAtIndex: function(idx, openOnly = false) {
+      const allControllers = self2.getControllers(openOnly);
+      const controllerAtIdx = allControllers[idx];
+      return typeof controllerAtIdx !== "undefined" && typeof controllerAtIdx.min !== "undefined" && typeof controllerAtIdx.max !== "undefined" ? controllerAtIdx : null;
+    },
+    _getAggregatedSettings: function() {
+      const allFolders = _getAllFolders();
+      return allFolders.reduce((acc, folder) => {
+        acc[folder.name] = folder.__controllers.reduce((controllerAcc, controller) => {
+          controllerAcc[controller.property] = controller.getValue();
+          return controllerAcc;
+        }, {});
+        return acc;
+      }, {});
+    },
+    _controllerValueToMidi: function(controller) {
+      const value = controller.getValue();
+      const min = controller.__min;
+      const max = controller.__max;
+      const midiValue = self2._mapRange(min, max, 1, 127, value);
+      return Math.round(midiValue);
+    }
   }, options);
   const supportedMidiOutputDevices = {
     "Midi Fighter Twister": {
@@ -3682,14 +3677,14 @@ const Gui = function(options) {
       }
     }
   };
-  let folders = [];
+  const folders = [];
   let currentFolder = self2.gui;
-  let midiConnectRange = [];
+  const midiConnectRange = [];
   let customControls = {};
   let debugMidi = false;
   let hidden = false;
   let Midi = null;
-  let midiReady = null;
+  let midiReady;
   const _init = function() {
     _addMidi();
     _addEventListeners();
@@ -3754,17 +3749,18 @@ const Gui = function(options) {
     container.insertBefore(newEl, container.childNodes[0] || null);
   };
   const _addSaveEventListeners = () => {
-    Mousetrap.bind("alt+s", _saveMarkup);
-    Mousetrap.bind("esc", _closeSave);
+    mousetrap.exports.bind("alt+s", _saveMarkup);
+    mousetrap.exports.bind("esc", _closeSave);
     document.querySelector(".gui-save__close").addEventListener("click", _closeSave);
   };
   const _saveMarkup = () => {
-    let allSettings = self2._getAggregatedSettings();
-    allSettings = JSON.stringify(allSettings, null, 1);
-    allSettings.replace(/\\"/g, "\uFFFF");
-    allSettings = allSettings.replace(/"([^"]+)":/g, "$1:").replace(/\uFFFF/g, '\\"');
-    allSettings.replace(/"/g, "'");
-    document.querySelector(".gui-save__textarea").value = allSettings;
+    const allSettings = self2._getAggregatedSettings();
+    const allSettingsJson = JSON.stringify(allSettings, null, 1);
+    let allSettingsFormatted = allSettingsJson.replace(/\\"/g, "\uFFFF");
+    allSettingsFormatted = allSettingsFormatted.replace(/"([^"]+)":/g, "$1:").replace(/\uFFFF/g, '\\"');
+    allSettingsFormatted.replace(/"/g, "'");
+    const textarea = document.querySelector(".gui-save__textarea");
+    textarea.value = allSettingsFormatted;
     _openSave();
     _copySaveToClipboard();
   };
@@ -3772,7 +3768,8 @@ const Gui = function(options) {
     document.querySelector(".gui-save").classList.add("is-visible");
   };
   const _copySaveToClipboard = () => {
-    copyToClipboard(document.querySelector(".gui-save__textarea").value);
+    const textarea = document.querySelector(".gui-save__textarea");
+    clipboard.write(textarea.value);
     const clipboardNotificationEl = document.querySelector(".gui-save__clipboard-notification");
     clipboardNotificationEl.classList.add("is-visible");
     window.setTimeout(() => {
@@ -3783,7 +3780,7 @@ const Gui = function(options) {
     document.querySelector(".gui-save").classList.remove("is-visible");
   };
   const _addStyles = function() {
-    let css2 = document.createElement("style");
+    const css2 = document.createElement("style");
     css2.type = "text/css";
     css2.appendChild(document.createTextNode(`
       .dg.ac {
@@ -3885,7 +3882,7 @@ const Gui = function(options) {
     });
   };
   const _onMidiMessage = function(message) {
-    let [command, note, velocity] = message.data;
+    const [command, note, velocity] = message.data;
     if (debugMidi)
       console.log(`command: ${command} / note: ${note} / velocity: ${velocity}`);
     _controlRangeChange(note, velocity);
@@ -3916,145 +3913,18 @@ const Gui = function(options) {
     const allControllers = self2.getControllers(false);
     allControllers.forEach((controller, idx) => {
       const colorIdx = Math.floor(idx / self2.midiPerColor);
-      const color2 = self2.colors[colorIdx];
+      const color = self2.colors[colorIdx];
       const el = controller.domElement;
       const rowEl = el.closest(".cr.number.has-slider");
       if (rowEl) {
-        rowEl.style.borderLeftColor = `${color2}`;
+        rowEl.style.borderLeftColor = `${color}`;
         const sliderEl = rowEl.querySelector(".slider-fg");
-        sliderEl.style.backgroundColor = `${color2}`;
+        sliderEl.style.backgroundColor = `${color}`;
       }
-    });
-  };
-  self2._mapRange = function(inMin, inMax, outMin, outMax, value) {
-    return (value - inMin) * (outMax - outMin) / (inMax - inMin) + outMin;
-  };
-  self2._snap = function(snapIncrement, value) {
-    return Math.round(value / snapIncrement) * snapIncrement;
-  };
-  self2._getNumericControllerAtIndex = function(idx, openOnly = false) {
-    const allControllers = self2.getControllers(openOnly);
-    const controllerAtIdx = allControllers[idx];
-    return typeof controllerAtIdx !== "undefined" && typeof controllerAtIdx.min !== "undefined" && typeof controllerAtIdx.max !== "undefined" ? controllerAtIdx : null;
-  };
-  self2._getAggregatedSettings = function() {
-    const allFolders = _getAllFolders();
-    return allFolders.reduce((acc, folder) => {
-      acc[folder.name] = folder.__controllers.reduce((controllerAcc, controller) => {
-        controllerAcc[controller.property] = controller.getValue();
-        return controllerAcc;
-      }, {});
-      return acc;
-    }, {});
-  };
-  self2._controllerValueToMidi = function(controller) {
-    const value = controller.getValue();
-    const min = controller.__min;
-    const max = controller.__max;
-    const midiValue = self2._mapRange(min, max, 1, 127, value);
-    return Math.round(midiValue);
-  };
-  self2.add = function(...params) {
-    const controller = currentFolder.add.apply(currentFolder, params);
-    _updateControllerColors();
-    self2.syncMidi();
-    return controller;
-  };
-  self2.addColor = function(...params) {
-    return currentFolder.addColor.apply(currentFolder, params);
-  };
-  self2.setFolder = function(name) {
-    const folder = self2.gui.addFolder(name);
-    folders.push(folder);
-    currentFolder = folder;
-    return folder;
-  };
-  self2.getControllers = function(openOnly = false) {
-    const allFolders = _getAllFolders();
-    const targetFolders = openOnly ? allFolders.filter((folder) => !folder.closed) : allFolders;
-    return targetFolders.reduce((acc, gui2) => {
-      return acc.concat(gui2.__controllers);
-    }, []);
-  };
-  self2.removeFolder = function(folder) {
-    const folderIdx = folders.findIndex((existingFolder) => existingFolder.name === folder.name);
-    folders.splice(folderIdx, 1);
-    self2.gui.removeFolder(folder);
-    currentFolder = self2.gui;
-  };
-  self2.connectMidiRange = function(start, end) {
-    for (var idx = start, length = end + 1; idx < length; idx++) {
-      midiConnectRange.push(idx);
-    }
-  };
-  self2.addControl = function(note, callback) {
-    customControls[note] = callback;
-  };
-  self2.destroy = function() {
-    self2.gui.destroy();
-    if (Midi) {
-      Midi.inputs.forEach((input) => {
-        input.removeListener("midimessage", "all");
-      });
-      Midi.disable();
-    }
-  };
-  self2.clear = function() {
-    self2.gui.destroy();
-    self2.gui = new index.GUI();
-    currentFolder = self2.gui;
-    customControls = {};
-  };
-  self2.hide = function() {
-    hidden = true;
-    self2.gui.hide();
-  };
-  self2.show = function() {
-    hidden = false;
-    self2.gui.show();
-  };
-  self2.toggle = function() {
-    hidden = !hidden;
-    if (hidden) {
-      self2.hide();
-    } else {
-      self2.show();
-    }
-  };
-  self2.update = function() {
-    self2.getControllers().forEach((controller) => {
-      controller.updateDisplay();
-    });
-  };
-  self2.configureDevice = function(deviceName) {
-    const device = supportedMidiOutputDevices[deviceName];
-    if (!device || !device.configure)
-      return console.warn(`No built-in configuration is available for "${deviceName}"`);
-    device.configure();
-  };
-  self2.syncMidi = function() {
-    if (!Midi)
-      return;
-    midiConnectRange.forEach((midiIdx, idx) => {
-      const controller = self2._getNumericControllerAtIndex(idx);
-      midiReady.then(() => {
-        Midi.outputs.forEach((output) => {
-          const device = supportedMidiOutputDevices[output.name];
-          if (!device)
-            return;
-          if (controller) {
-            const midiValue = self2._controllerValueToMidi(controller);
-            if (device.sync)
-              device.sync(output, midiIdx, midiValue);
-          } else {
-            if (device.clear)
-              device.clear(output, midiIdx);
-          }
-        });
-      });
     });
   };
   _init();
   return self2;
 };
 export { Gui as default };
+//# sourceMappingURL=gui.es.js.map
