@@ -3523,7 +3523,6 @@ clipboard.writeSync = () => {
 };
 class Gui {
   constructor(options = {}) {
-    __publicField(this, "enabled", true);
     __publicField(this, "gui", new GUI$1());
     __publicField(this, "midiPerColor");
     __publicField(this, "midi");
@@ -3898,7 +3897,7 @@ class Gui {
       const { __min: min, __max: max, __step: step } = controller;
       const adjustedStep = step ? step : (max - min) / 127;
       const scaledValue = this._mapRange(0, 127, min, max, velocity);
-      const snappedValue = this._snap(adjustedStep.toFixed(5), scaledValue);
+      const snappedValue = this._snap(Number(adjustedStep.toFixed(5)), scaledValue);
       controller.setValue(snappedValue);
     });
     __publicField(this, "_customControlChange", (note, velocity) => {

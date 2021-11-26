@@ -54,7 +54,7 @@
   "scripts": {
     "build": "vite build && tsc",
     "test": "jest",
-    "dev": "jest --watchAll & chokidar 'src/**/*' 'test/**/*' -c 'vite build'",
+    "dev": "jest --watchAll & chokidar 'src/**/*' 'test/**/*' -c 'npm run build'",
     "dev:example": "browser-sync start --server --files '**/*.html' 'dist/**/*.js' --index 'example/index.html' --no-open --port 3333"
   }
 }
