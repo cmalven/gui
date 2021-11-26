@@ -14,11 +14,11 @@ declare type SupportedMidiOutputDevices = {
     };
 };
 /**
- * Assists in controlling properties
+ * An abstraction layer over dat.gui that simplifies use and adds automatic support through MIDI devices.
  *
  * @class    Gui
- * @param    {object}  options  Options for the object
- * @return   {object}  The object
+ * @param    {object}  options  Options for the GUI
+ * @return   {object}  GUI object
  */
 declare class Gui {
     enabled: boolean;
