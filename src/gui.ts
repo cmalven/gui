@@ -3,14 +3,6 @@ import WebMidi, { Output } from 'webmidi';
 import * as Mousetrap from 'mousetrap';
 import clipboard from 'clipboardy';
 
-/**
- * Assists in controlling properties
- *
- * @class    Gui
- * @param    {object}  options  Options for the object
- * @return   {object}  The object
- */
-
 type Options = {
   midi?: boolean;
   colors?: string[];
@@ -28,6 +20,14 @@ type SupportedMidiOutputDevices = { [key: string]: {
     clear?: (output: Output, midiIdx: number) => void,
     configure?: () => void,
   }};
+
+/**
+ * Assists in controlling properties
+ *
+ * @class    Gui
+ * @param    {object}  options  Options for the object
+ * @return   {object}  The object
+ */
 
 class Gui {
   //

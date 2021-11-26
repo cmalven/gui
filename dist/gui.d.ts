@@ -1,12 +1,5 @@
 import * as dat from 'dat.gui';
 import WebMidi, { Output } from 'webmidi';
-/**
- * Assists in controlling properties
- *
- * @class    Gui
- * @param    {object}  options  Options for the object
- * @return   {object}  The object
- */
 declare type Options = {
     midi?: boolean;
     colors?: string[];
@@ -20,6 +13,13 @@ declare type SupportedMidiOutputDevices = {
         configure?: () => void;
     };
 };
+/**
+ * Assists in controlling properties
+ *
+ * @class    Gui
+ * @param    {object}  options  Options for the object
+ * @return   {object}  The object
+ */
 declare class Gui {
     enabled: boolean;
     gui: dat.GUI;
