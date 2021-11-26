@@ -104,7 +104,7 @@ Promise.all(readyPromises).then(() => {
 Add a new control to the current folder.
 
 `gui.addColor()`
-Adds a new color pick control.
+Adds a new color picker control to the current folder.
 
 `gui.setFolder(name)`
 Adds a new folder with the given name and sets that as the current folder.
